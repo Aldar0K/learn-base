@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: learnbase-db-prod
+    platform: linux/amd64
+    image: postgres:14.1-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_DB: ${DATABASE_NAME}
+    env_file:
+      - .env
+    volumes:
+      - db-prod:/var/lib/postgresql/data
+    networks:
+      - learnbase-prod
+
+  backend:
+    container_name: learnbase-backend-prod
+    platform: linux/amd64
+    build:
+      context: ../backend
+      dockerfile: ./Dockerfile.backend
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      HASH_SALT: ${HASH_SALT}
+    env_file:
+      - .env
+    networks:
+      - learnbase-prod
+    depends_on:
+      - db
+    restart: always
+
+  admin-app:
+    container_name: learnbase-admin-app-prod
+    platform: linux/amd64
+    build:
+      context: ../admin-app
+      dockerfile: ./Dockerfile.admin-app
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_IS_DEV: ${VITE_IS_DEV}
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+    env_file:
+      - .env
+    networks:
+      - learnbase-prod
+    restart: always
+
+  client-app:
+    container_name: learnbase-client-app-prod
+    platform: linux/amd64
+    build:
+      context: ../client-app
+      dockerfile: ./Dockerfile.client-app
+    ports:
+      - "3002:3000"
+    environment:
+      NEXT_PUBLIC_IS_DEV: ${NEXT_PUBLIC_IS_DEV}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+    env_file:
+      - .env
+    networks:
+      - learnbase-prod
+    restart: always
+
+networks:
+  learnbase-prod:
+volumes:
+  db-prod:

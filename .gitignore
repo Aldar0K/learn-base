@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea
+.vscode
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+coverage/
+
+# Env files (keep examples)
+.env
+.env.*
+learnbase-config-dev/.env
+learnbase-config-prod/.env
+backend/.env
+client-app/.env
+admin-app/.env
+!**/.env.example
