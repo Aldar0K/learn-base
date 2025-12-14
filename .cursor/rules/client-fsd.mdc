@@ -1,0 +1,37 @@
+---
+description: FSD architecture rules for client-app (Next.js)
+globs: ["client-app/**"]
+alwaysApply: false
+---
+# FSD for Next.js
+Feature-Sliced Design (FSD) is an architectural methodology for scaffolding front-end applications. This project uses Next.js with App Router.
+
+# Structure
+📁 src/
+  📁 app/ (Next.js App Router)
+  📁 pages/ (FSD pages layer)
+  📁 widgets/
+  📁 features/
+  📁 entities/
+  📁 shared/
+
+## Next.js App Router Integration
+- The `app` folder is used for Next.js App Router (routing, layouts, metadata).
+- The FSD `pages` layer can be imported into App Router pages or used as page components.
+- All shared components should have "use client" directive when they use hooks or browser APIs.
+
+## Layers
+App — Next.js App Router (routing, entrypoints, global styles, providers).
+Pages — full pages or large parts of a page.
+Widgets — large self-contained chunks of functionality or UI.
+Features — reused implementations of entire product features.
+Entities — business entities that the project works with.
+Shared — reusable functionality, detached from business specifics.
+
+## My own rules
+- All folders should be named in lower case (app, widgets, features, etc.)
+- All files with React components (1 file - 1 component) should be named in capital case (App.tsx, Header.tsx, etc.)
+- Massive React components should be lazy (React.lazy), but from the public api should be returned components already wrapped in the Suspense tag
+- Use Next.js App Router first strategy - the app folder is inside the src
+- Pages layer should be inside app folder or page components can be imported from the default fsd pages layer
+- All shared components should have "use client" directive when needed

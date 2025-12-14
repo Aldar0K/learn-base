@@ -1,0 +1,81 @@
+---
+description: FSD architecture rules for admin-app
+globs: ["admin-app/**"]
+alwaysApply: false
+---
+# FSD
+Feature-Sliced Design (FSD) is an architectural methodology for scaffolding front-end applications. Simply put, it's a compilation of rules and conventions on organizing code. The main purpose of this methodology is to make the project more understandable and stable in the face of ever-changing business requirements.
+
+# Structure
+Here is a simple project that implements FSD:
+📁 src/
+  📁 app/
+  📁 pages/
+  📁 widgets/
+  📁 features/
+  📁 entities/
+  📁 shared/
+
+These top-level folders are called layers. Let's look deeper:
+📂 app/
+  App.tsx (main tsx file)
+  📁 providers/
+  📁 routes/
+📁 pages/
+  📁 main/
+    📁 model/
+    📁 ui/
+    index.ts (public api)
+  📁 auth/
+📁 features/
+  📁 login/
+    📁 model/
+    📁 ui/
+    index.ts (public api)
+📁 entities/
+  📁 user/
+    📁 model/
+    📁 ui/
+    index.ts (public api)
+📁 shared/
+  📁 ui/
+  📁 api/
+  📁 utils/
+  📁 types/
+  📁 hooks/
+
+Folders inside 📂 pages are called slices. They divide the layer by domain (in this case, by pages).
+
+Folders inside 📂 app, 📂 shared, and 📂 pages/article-reader are called segments, and they divide slices (or layers) by technical purpose, i.e. what the code is for.
+
+## Layers
+Layers are standardized across all FSD projects. You don't have to use all of the layers, but their names are important. There are currently seven of them (from top to bottom):
+
+App — everything that makes the app run — routing, entrypoints, global styles, providers.
+Processes (deprecated) — complex inter-page scenarios.
+Pages — full pages or large parts of a page in nested routing.
+Widgets — large self-contained chunks of functionality or UI, usually delivering an entire use case.
+Features — reused implementations of entire product features, i.e. actions that bring business value to the user.
+Entities — business entities that the project works with, like user or product.
+Shared — reusable functionality, especially when it's detached from the specifics of the project/business, though not necessarily.
+
+## Slices
+Next up are slices, which partition the code by business domain. You're free to choose any names for them, and create as many as you wish. Slices make your codebase easier to navigate by keeping logically related modules close together.
+
+Slices cannot use other slices on the same layer, and that helps with high cohesion and low coupling.
+
+## Segments
+Slices, as well as layers App and Shared, consist of segments, and segments group your code by its purpose. Segment names are not constrained by the standard, but there are several conventional names for the most common purposes:
+
+ui — everything related to UI display: UI components, date formatters, styles, etc.
+api — backend interactions: request functions, data types, mappers, etc.
+model — the data model: schemas, interfaces, stores, and business logic.
+lib — library code that other modules on this slice need.
+config — configuration files and feature flags.
+Usually these segments are enough for most layers, you would only create your own segments in Shared or App, but this is not a rule.
+
+## My own rules
+- All folders should be named in lower case (app, widgets, features, etc.)
+- All files with React components (1 file - 1 component) should be named in capital case (App.tsx, Header.tsx, etc.)
+- Massive React components should be lazy (React.lazy), but from the the public api should be returned components already wrapped in the Suspense tag
+- If project is a Next.js app, then use app router first strategy, when the app folder is inside the src (so pages layer should be inside app folder (or page components can be imported from the default fsd pages layer), all shared components should have "use client", etc.)
