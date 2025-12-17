@@ -8,24 +8,59 @@
 - `learnbase-config-prod/` — `docker-compose.yml`, `.env.example` (prod)
 
 ## Быстрый старт
-1) Скопируй переменные:
-   - Dev: `cd learnbase-config-dev && cp .env.example .env`
-   - Prod: `cd learnbase-config-prod && cp .env.example .env`
-   - И скопируй `.env.example` внутри каждого приложения.
-2) Установи зависимости через контейнер (node_modules складываются в хостовые папки):
-   - Backend: `docker compose run --rm backend yarn install` (из `learnbase-config-dev`)
-   - Фронты по аналогии: `docker compose run --rm admin-app npm install`, `docker compose run --rm client-app npm install`
-3) Dev (hot reload):  
+
+### Dev среда (разработка)
+
+1) Скопируй переменные окружения:
+   ```bash
+   cd learnbase-config-dev
+   cp .env.example .env
+   # И скопируй .env.example внутри каждого приложения (backend, admin-app, client-app)
    ```
+
+2) Установи зависимости через контейнер (один раз перед первым запуском):
+   ```bash
+   cd learnbase-config-dev
+   # Backend
+   docker compose run --rm backend yarn install
+   # Frontend приложения
+   docker compose run --rm admin-app npm install
+   docker compose run --rm client-app npm install
+   ```
+   **Важно:** Зависимости установятся в контейнере и будут смонтированы на ваш ПК (в папки `node_modules`), чтобы IDE видела типы и автодополнение работало.
+
+3) Запуск dev окружения (hot reload):
+   ```bash
    cd learnbase-config-dev
    docker compose --env-file .env up --build
    ```
-4) Prod (билд и запуск без вотчеров):  
+   
+   Приложения будут доступны:
+   - Backend: http://localhost:3001
+   - Admin-app: http://localhost:3000
+   - Client-app: http://localhost:3002
+
+4) Проверка работоспособности:
+   ```bash
+   curl http://localhost:3001/api/health
+   # Ожидается: { "status": "ok", "db": "ok" }
    ```
+
+### Prod среда (продакшн)
+
+1) Скопируй переменные окружения:
+   ```bash
+   cd learnbase-config-prod
+   cp .env.example .env
+   # И скопируй .env.example внутри каждого приложения
+   ```
+
+2) Сборка и запуск:
+   ```bash
    cd learnbase-config-prod
    docker compose --env-file .env up --build -d
    ```
-5) Smoke-check: `curl http://localhost:3001/api/health` → ожидается `{ "status": "ok", "db": "ok" }` (при поднятой базе).
+   Приложения соберутся и запустятся в фоновом режиме без hot reload.
 
 ## Обновление зависимостей
 - Backend: `docker compose run --rm backend yarn add <pkg>` / `yarn add -D <pkg>` / `yarn upgrade <pkg>`
