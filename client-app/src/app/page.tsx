@@ -1,6 +1,6 @@
 export default function Page() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex-1 flex items-center justify-center">
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-2xl font-bold">LearnBase Client</h1>
         <p className="text-muted-foreground">

@@ -9,9 +9,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider
       attribute="class"
       defaultTheme="system"
-      storageKey="learnbase-theme"
-      enableSystem
-      disableTransitionOnChange
+      storageKey="learnbase-client-theme"
+      enableSystem={false}
     >
       {children}
     </ThemeProvider>
