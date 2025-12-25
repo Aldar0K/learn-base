@@ -26,4 +26,3 @@ export const Header = ({ className }: HeaderProps) => {
     </header>
   );
 };
-
