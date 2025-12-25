@@ -1,11 +1,26 @@
-FROM node:18.17.0
+FROM node:20-slim
 
 WORKDIR /usr/app
 
+# Установка OpenSSL для Prisma
+# Debian-based образы имеют лучшую совместимость с Prisma
+RUN apt-get update && \
+    apt-get install -y openssl && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY package.json yarn.lock ./
+
+# Копируем prisma схему до установки зависимостей, чтобы postinstall мог сгенерировать клиент
+COPY prisma ./prisma
+
+# Удаляем старый Prisma Client если есть (чтобы избежать проблем с кешем)
+RUN rm -rf node_modules/.prisma node_modules/@prisma/client 2>/dev/null || true
 
 RUN yarn install
 
 COPY . .
+
+# Перегенерируем Prisma Client для правильной платформы
+RUN yarn prisma:generate
 
 CMD ["yarn", "start:dev"]

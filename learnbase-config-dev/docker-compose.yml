@@ -76,6 +76,29 @@ services:
     networks:
       - learnbase-dev
 
+  prisma-studio:
+    container_name: learnbase-prisma-studio-dev
+    platform: linux/amd64
+    build:
+      context: ../backend
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - "5555:5555"
+    volumes:
+      - ../backend:/usr/app
+      - ../backend/node_modules:/usr/app/node_modules
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    env_file:
+      - .env
+    working_dir: /usr/app
+    command: sh -c "rm -rf node_modules/.prisma node_modules/@prisma/client 2>/dev/null || true && npx prisma generate && npx prisma studio --hostname 0.0.0.0 --port 5555 --browser none"
+    networks:
+      - learnbase-dev
+    depends_on:
+      - db
+      - backend
+
 networks:
   learnbase-dev:
 volumes:

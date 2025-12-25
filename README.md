@@ -39,6 +39,7 @@
    - Backend: http://localhost:3001
    - Admin-app: http://localhost:3000
    - Client-app: http://localhost:3002
+   - Prisma Studio: http://localhost:5555 (только dev)
 
 4) Проверка работоспособности:
    ```bash

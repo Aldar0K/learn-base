@@ -1,0 +1,141 @@
+// Prisma Schema для LearnBase MVP
+// Минимальная архитектура для быстрого старта
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Пользователи
+// ============================================
+
+enum UserRole {
+  student
+  author
+  admin
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          UserRole  @default(student)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  // Связи
+  courses       Course[]  @relation("CourseAuthor")
+  enrollments   Enrollment[]
+  submissions   Submission[]
+
+  @@map("users")
+}
+
+// ============================================
+// Курсы
+// ============================================
+
+model Course {
+  id          String    @id @default(uuid())
+  title       String
+  description String?   @db.Text
+  authorId    String    @map("author_id")
+  isPublished Boolean   @default(false) @map("is_published")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Связи
+  author      User      @relation("CourseAuthor", fields: [authorId], references: [id])
+  lessons     Lesson[]
+  enrollments Enrollment[]
+
+  @@index([authorId])
+  @@map("courses")
+}
+
+// ============================================
+// Уроки
+// ============================================
+
+model Lesson {
+  id        String  @id @default(uuid())
+  courseId String  @map("course_id")
+  title     String
+  position  Int
+
+  // Связи
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  steps     Step[]
+
+  @@index([courseId], name: "idx_lessons_course")
+  @@map("lessons")
+}
+
+// ============================================
+// Шаги (ключевая сущность)
+// ============================================
+
+enum StepType {
+  quiz
+  text
+  code
+}
+
+model Step {
+  id        String    @id @default(uuid())
+  lessonId String    @map("lesson_id")
+  type      StepType
+  content   Json      // JSONB в PostgreSQL
+  position  Int
+
+  // Связи
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@index([lessonId], name: "idx_steps_lesson")
+  @@map("steps")
+}
+
+// ============================================
+// Записи на курс (User ↔ Course)
+// ============================================
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  courseId String   @map("course_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Связи
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@map("enrollments")
+}
+
+// ============================================
+// Ответы пользователей
+// ============================================
+
+model Submission {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  stepId     String   @map("step_id")
+  answer     Json     // JSONB в PostgreSQL
+  isCorrect  Boolean? @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Связи
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  step Step @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([userId, stepId], name: "idx_submissions_user_step")
+  @@map("submissions")
+}
+
