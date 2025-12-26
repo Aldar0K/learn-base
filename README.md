@@ -29,7 +29,15 @@
    ```
    **Важно:** Зависимости установятся в контейнере и будут смонтированы на ваш ПК (в папки `node_modules`), чтобы IDE видела типы и автодополнение работало.
 
-3) Запуск dev окружения (hot reload):
+3) Примени миграции БД (один раз перед первым запуском):
+   ```bash
+   cd learnbase-config-dev
+   docker compose run --rm backend yarn prisma:migrate
+   # Опционально: заполнить тестовыми данными
+   docker compose run --rm backend yarn prisma:seed
+   ```
+
+4) Запуск dev окружения (hot reload):
    ```bash
    cd learnbase-config-dev
    docker compose --env-file .env up --build
@@ -41,7 +49,7 @@
    - Client-app: http://localhost:3002
    - Prisma Studio: http://localhost:5555 (только dev)
 
-4) Проверка работоспособности:
+5) Проверка работоспособности:
    ```bash
    curl http://localhost:3001/api/health
    # Ожидается: { "status": "ok", "db": "ok" }
@@ -63,10 +71,22 @@
    ```
    Приложения соберутся и запустятся в фоновом режиме без hot reload.
 
-## Обновление зависимостей
+## Полезные команды
+
+### Обновление зависимостей
 - Backend: `docker compose run --rm backend yarn add <pkg>` / `yarn add -D <pkg>` / `yarn upgrade <pkg>`
 - Admin/Client (npm): `docker compose run --rm admin-app npm install <pkg>` и т.п.
-- `node_modules` монтируются из хоста (bind), IDE видит типы, запуск остаётся внутри Docker.
+- После изменения `package.json`: переустанови зависимости через `docker compose run --rm <service> npm install` (или `yarn install` для backend)
+
+### Работа с БД (Prisma)
+- Миграции: `docker compose run --rm backend yarn prisma:migrate`
+- Сиды: `docker compose run --rm backend yarn prisma:seed`
+- Prisma Studio: `docker compose up prisma-studio` (доступен на http://localhost:5555)
+
+### Управление контейнерами
+- Остановка: `docker compose down`
+- Перезапуск сервиса: `docker compose restart <service>`
+- Логи: `docker compose logs -f <service>`
 
 ## Замечания по секретам
 - Не клади секреты в образы и не используйте `NEXT_PUBLIC_*` для чувствительных значений — всё с таким префиксом попадет в бандл.

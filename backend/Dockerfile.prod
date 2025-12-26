@@ -1,24 +1,44 @@
-FROM node:18.17.0 AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /usr/app
 
+# Установка OpenSSL для Prisma
+RUN apt-get update && \
+    apt-get install -y openssl && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY package.json yarn.lock ./
+
+# Копируем prisma схему до установки зависимостей
+COPY prisma ./prisma
 
 RUN yarn install
 
 COPY . .
 
-RUN yarn build
+# Генерируем Prisma Client и собираем приложение
+RUN yarn prisma:generate && yarn build
 
-FROM node:18.17.0
+FROM node:20-slim
 
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
+# Установка OpenSSL для Prisma
+RUN apt-get update && \
+    apt-get install -y openssl && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY package.json yarn.lock ./
 
+# Копируем prisma схему
+COPY prisma ./prisma
+
 RUN yarn install --production=true
+
+# Генерируем Prisma Client для production
+RUN yarn prisma:generate
 
 COPY --from=builder /usr/app/dist ./dist
 
