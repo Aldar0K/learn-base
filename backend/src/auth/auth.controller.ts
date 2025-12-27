@@ -1,0 +1,91 @@
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  UseGuards,
+  Res,
+  Req,
+} from "@nestjs/common";
+import { Response, Request } from "express";
+import { UserRole } from "@prisma/client";
+import { AuthService } from "./auth.service";
+import { RegisterDto, LoginDto } from "./dto";
+import { JwtAuthGuard, RolesGuard } from "./guards";
+import { CurrentUser, Roles } from "./decorators";
+
+@Controller("auth")
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post("register")
+  async register(@Body() registerDto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.register(registerDto);
+
+    // Устанавливаем http-only cookie с токеном
+    res.cookie("access_token", result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS только в production
+      sameSite: "lax", // Защита от CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      path: "/",
+    });
+
+    // Возвращаем только пользователя, без токена
+    return {
+      user: result.user,
+    };
+  }
+
+  @Post("login")
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.login(loginDto);
+
+    // Устанавливаем http-only cookie с токеном
+    res.cookie("access_token", result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS только в production
+      sameSite: "lax", // Защита от CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      path: "/",
+    });
+
+    // Возвращаем только пользователя, без токена
+    return {
+      user: result.user,
+    };
+  }
+
+  @Post("logout")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async logout(@Res({ passthrough: true }) res: Response) {
+    // Очищаем cookie
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return { message: "Logged out successfully" };
+  }
+
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  async getMe(@CurrentUser() user: { id: string; email: string; role: string }) {
+    return { user };
+  }
+
+  // Пример защищенного endpoint только для админов
+  @Get("admin-only")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin)
+  async adminOnly(@CurrentUser() user: { id: string; email: string; role: string }) {
+    return { message: "This is admin only endpoint", user };
+  }
+}
+

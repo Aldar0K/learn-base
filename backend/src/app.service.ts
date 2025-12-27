@@ -1,38 +1,16 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Pool } from 'pg';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from './common/prisma';
 
 @Injectable()
-export class AppService implements OnModuleDestroy {
-  private pool?: Pool;
-
-  constructor(private readonly configService: ConfigService) {}
-
-  private getPool(): Pool | undefined {
-    if (this.pool) return this.pool;
-    const connectionString = this.configService.get<string>('DATABASE_URL');
-    if (!connectionString) return undefined;
-    this.pool = new Pool({ connectionString });
-    return this.pool;
-  }
+export class AppService {
+  constructor(private readonly prisma: PrismaService) {}
 
   async getHealth() {
-    const db = await this.checkDb();
-    return { status: 'ok', db };
-  }
-
-  private async checkDb(): Promise<string> {
-    const pool = this.getPool();
-    if (!pool) return 'missing DATABASE_URL';
     try {
-      await pool.query('SELECT 1');
-      return 'ok';
+      await this.prisma.$queryRaw`SELECT 1`;
+      return { status: 'ok', db: 'ok' };
     } catch (error) {
-      return 'error';
+      return { status: 'ok', db: 'error' };
     }
-  }
-
-  async onModuleDestroy() {
-    await this.pool?.end();
   }
 }

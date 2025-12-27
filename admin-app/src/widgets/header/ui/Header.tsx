@@ -1,4 +1,8 @@
+"use client";
+
+import { useNavigate } from "react-router-dom";
 import { ThemeSwitch } from "@/features/switch-theme";
+import { useAuth } from "@/features/auth";
 import { cn } from "@/shared/utils";
 
 export type HeaderProps = {
@@ -6,6 +10,14 @@ export type HeaderProps = {
 };
 
 export const Header = ({ className }: HeaderProps) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
     <header
       className={cn(
@@ -21,6 +33,17 @@ export const Header = ({ className }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-4">
+        {user && (
+          <div className="text-sm text-muted-foreground">
+            {user.email} ({user.role})
+          </div>
+        )}
+        <button
+          onClick={handleLogout}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Logout
+        </button>
         <ThemeSwitch />
       </div>
     </header>
