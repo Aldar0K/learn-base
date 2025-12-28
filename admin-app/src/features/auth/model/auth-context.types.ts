@@ -8,4 +8,3 @@ export type AuthContextType = {
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
-

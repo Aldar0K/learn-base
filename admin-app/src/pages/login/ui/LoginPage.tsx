@@ -1,8 +1,9 @@
 "use client";
 
+import { useAuth } from "@/features/auth";
+import { AxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/features/auth";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -31,8 +32,12 @@ export const LoginPage = () => {
         await register(email, password);
       }
       navigate("/", { replace: true });
-    } catch (err: any) {
-      setError(err.response?.data?.message || "An error occurred");
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        setError(err.response?.data.message || "An error occurred");
+      } else {
+        setError("An error occurred");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,4 +117,3 @@ export const LoginPage = () => {
     </div>
   );
 };
-
