@@ -5,16 +5,12 @@ import {
   HttpCode,
   HttpStatus,
   Get,
-  UseGuards,
   Res,
-  Req,
 } from "@nestjs/common";
-import { Response, Request } from "express";
-import { UserRole } from "@prisma/client";
+import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { RegisterDto, LoginDto } from "./dto";
-import { JwtAuthGuard, RolesGuard } from "./guards";
-import { CurrentUser, Roles } from "./decorators";
+import { CurrentUser, Authenticated, AdminOnly } from "./decorators";
 
 @Controller("auth")
 export class AuthController {
@@ -61,7 +57,7 @@ export class AuthController {
 
   @Post("logout")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @Authenticated()
   async logout(@Res({ passthrough: true }) res: Response) {
     // Очищаем cookie
     res.clearCookie("access_token", {
@@ -75,15 +71,14 @@ export class AuthController {
   }
 
   @Get("me")
-  @UseGuards(JwtAuthGuard)
+  @Authenticated()
   async getMe(@CurrentUser() user: { id: string; email: string; role: string }) {
     return { user };
   }
 
   // Пример защищенного endpoint только для админов
   @Get("admin-only")
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin)
+  @AdminOnly()
   async adminOnly(@CurrentUser() user: { id: string; email: string; role: string }) {
     return { message: "This is admin only endpoint", user };
   }

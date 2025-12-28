@@ -1,7 +1,19 @@
-import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { UserRole } from "@prisma/client";
 import { ROLES_KEY } from "../decorators/roles.decorator";
+
+/**
+ * Иерархия ролей:
+ * - admin: может все
+ * - author: может создавать/редактировать курсы + все что может student
+ * - student: может только проходить курсы (читать, записываться, отправлять ответы)
+ */
+const ROLE_HIERARCHY: Record<UserRole, UserRole[]> = {
+  [UserRole.admin]: [UserRole.admin, UserRole.author, UserRole.student],
+  [UserRole.author]: [UserRole.author, UserRole.student],
+  [UserRole.student]: [UserRole.student],
+};
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -13,7 +25,7 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!requiredRoles) {
+    if (!requiredRoles || requiredRoles.length === 0) {
       return true; // Если роли не указаны, разрешаем доступ
     }
 
@@ -23,7 +35,11 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    return requiredRoles.includes(user.role);
+    const userRole = user.role as UserRole;
+    const allowedRoles = ROLE_HIERARCHY[userRole] || [];
+
+    // Проверяем, есть ли хотя бы одна требуемая роль в списке разрешенных для пользователя
+    return requiredRoles.some((role) => allowedRoles.includes(role));
   }
 }
 
