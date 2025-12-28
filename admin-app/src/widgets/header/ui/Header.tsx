@@ -3,6 +3,7 @@
 import { useNavigate } from "react-router-dom";
 import { ThemeSwitch } from "@/features/switch-theme";
 import { useAuth } from "@/entities/user";
+import { Button } from "@/shared/ui";
 import { cn } from "@/shared/utils";
 
 export type HeaderProps = {
@@ -38,12 +39,13 @@ export const Header = ({ className }: HeaderProps) => {
             {user.email} ({user.role})
           </div>
         )}
-        <button
+        <Button
           onClick={handleLogout}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          variant="ghost"
+          size="sm"
         >
           Logout
-        </button>
+        </Button>
         <ThemeSwitch />
       </div>
     </header>

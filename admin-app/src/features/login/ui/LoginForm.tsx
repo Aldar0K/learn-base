@@ -1,6 +1,9 @@
 "use client";
 
 import { useAuth } from "@/entities/user";
+import { Button } from "@/shared/ui/button/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 import { AxiosError } from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -56,45 +59,34 @@ export const LoginForm = () => {
           )}
 
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium">
-              Email
-            </label>
-            <input
+            <Label htmlFor="email">Email</Label>
+            <Input
               id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border-b border-input bg-transparent px-0 py-2 text-sm focus:border-primary focus:outline-none"
               placeholder="your@email.com"
+              className="mt-1 border-b border-x-0 border-t-0 rounded-none px-0"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="mb-1 block text-sm font-medium"
-            >
-              Password
-            </label>
-            <input
+            <Label htmlFor="password">Password</Label>
+            <Input
               id="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border-b border-input bg-transparent px-0 py-2 text-sm focus:border-primary focus:outline-none"
               placeholder="••••••••"
+              className="mt-1 border-b border-x-0 border-t-0 rounded-none px-0"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-primary text-primary-foreground py-2.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Signing in..." : "Sign in"}
-          </button>
+          </Button>
 
           <div className="pt-4 text-center text-sm">
             <span className="text-muted-foreground">
