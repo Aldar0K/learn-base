@@ -24,9 +24,17 @@ Backend построен на NestJS с использованием Prisma ORM 
 ```
 backend/
   src/
-    modules/          # Модули приложения
-    common/           # Общие утилиты, guards, decorators
-    config/           # Конфигурация
+    auth/             # Модуль аутентификации и авторизации
+      dto/            # DTO для регистрации и входа
+      guards/         # JWT и Role guards
+      decorators/     # Декораторы (@CurrentUser, @Roles, @Authenticated и т.д.)
+      strategies/     # JWT стратегия для Passport
+    courses/          # Модуль курсов
+      dto/            # DTO для создания и обновления курсов
+    common/           # Общие утилиты
+      prisma/         # Prisma Service
+    app.module.ts     # Корневой модуль
+    main.ts           # Точка входа
   prisma/
     schema.prisma     # Схема БД
     migrations/       # Миграции
@@ -48,70 +56,88 @@ backend/
 
 ## API Design
 
-### Основные endpoints (планируемые)
+### Реализованные endpoints
 
 **Аутентификация:**
-- `POST /api/auth/register` - Регистрация
-- `POST /api/auth/login` - Вход
-- `POST /api/auth/logout` - Выход
+- `POST /api/auth/register` - Регистрация нового пользователя (устанавливает http-only cookie)
+- `POST /api/auth/login` - Вход пользователя (устанавливает http-only cookie)
+- `POST /api/auth/logout` - Выход (очищает cookie, требует аутентификации)
+- `GET /api/auth/me` - Получение текущего пользователя (требует аутентификации)
+- `GET /api/auth/admin-only` - Пример endpoint только для админов
 
 **Курсы:**
-- `GET /api/courses` - Список курсов
-- `GET /api/courses/:id` - Детали курса
+- `GET /api/courses` - Список опубликованных курсов (доступно всем)
+- `GET /api/courses/my` - Мои курсы, включая неопубликованные (author/admin)
+- `GET /api/courses/:id` - Детали курса (требует аутентификации)
 - `POST /api/courses` - Создание курса (author/admin)
-- `PUT /api/courses/:id` - Обновление курса (author/admin)
-- `DELETE /api/courses/:id` - Удаление курса (author/admin)
+- `PATCH /api/courses/:id` - Обновление курса (автор курса или admin)
+- `DELETE /api/courses/:id` - Удаление курса (автор курса или admin)
 
-**Уроки:**
+**Уроки:** (планируется)
 - `GET /api/courses/:courseId/lessons` - Список уроков курса
 - `POST /api/courses/:courseId/lessons` - Создание урока (author/admin)
 
-**Шаги:**
+**Шаги:** (планируется)
 - `GET /api/lessons/:lessonId/steps` - Список шагов урока
 - `POST /api/lessons/:lessonId/steps` - Создание шага (author/admin)
 
-**Записи на курс:**
+**Записи на курс:** (планируется)
 - `POST /api/courses/:courseId/enroll` - Записаться на курс
 - `GET /api/users/me/enrollments` - Мои записи
 
-**Ответы:**
+**Ответы:** (планируется)
 - `POST /api/steps/:stepId/submit` - Отправить ответ
 - `GET /api/steps/:stepId/submissions` - Мои ответы на шаг
 
 ## Модули
 
-Планируемая структура модулей:
+### Реализованные модули
 
-```
-src/
-  modules/
-    auth/           # Аутентификация и авторизация
-    users/          # Управление пользователями
-    courses/        # Курсы
-    lessons/        # Уроки
-    steps/          # Шаги
-    enrollments/    # Записи на курсы
-    submissions/    # Ответы
-  common/
-    guards/         # Guards для авторизации
-    decorators/     # Кастомные декораторы
-    filters/        # Exception filters
-    interceptors/  # Interceptors
-  config/           # Конфигурация
-```
+**AuthModule** (`src/auth/`)
+- Регистрация и вход пользователей
+- JWT аутентификация через http-only cookies
+- Role-based авторизация
+- Guards и декораторы для защиты endpoints
+
+**CoursesModule** (`src/courses/`)
+- CRUD операции для курсов
+- Проверка прав доступа (автор курса или admin)
+- Фильтрация опубликованных/неопубликованных курсов
+
+**PrismaModule** (`src/common/prisma/`)
+- PrismaService для работы с БД
+- Автоматическое подключение/отключение
+
+### Планируемые модули
+
+- **LessonsModule** - управление уроками
+- **StepsModule** - управление шагами уроков
+- **EnrollmentsModule** - записи на курсы
+- **SubmissionsModule** - ответы пользователей
 
 ## Аутентификация и авторизация
 
-**Планируемая реализация:**
+**Реализовано:**
 - JWT токены для аутентификации
-- Роли: `student`, `author`, `admin`
+- **Http-only cookies** для безопасного хранения токенов
+- Роли: `student`, `author`, `admin` с иерархией прав
 - Guards для защиты endpoints
-- Декораторы для проверки ролей
+- Декораторы для удобной проверки ролей
 
-**Примеры:**
-- `@Public()` - публичный endpoint
-- `@Roles('author', 'admin')` - доступ только для авторов и админов
+**Безопасность:**
+- Токены хранятся в http-only cookies (защита от XSS)
+- SameSite: lax (защита от CSRF)
+- Secure flag в production (только HTTPS)
+- CORS настроен для работы с credentials
+
+**Декораторы:**
+- `@Authenticated()` - для всех авторизованных пользователей
+- `@AuthorOrAdmin()` - для авторов и админов
+- `@AdminOnly()` - только для админов
+- `@Roles(...roles)` - гибкий декоратор для конкретных ролей
 - `@CurrentUser()` - получение текущего пользователя
+
+Подробнее: [`guards.md`](./guards.md)
 
 ## Обработка ошибок
 

@@ -1,5 +1,5 @@
-import type { User } from "@/entities/user";
 import { apiClient } from "@/shared/api";
+import type { User } from "../types";
 
 export type RegisterDto = {
   email: string;

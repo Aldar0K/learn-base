@@ -2,9 +2,10 @@ import { type ReactNode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { ThemeProvider } from "@/providers/ThemeProvider";
-import { AuthProvider, useAuth } from "@/features/auth";
+import { AuthProvider, useAuth } from "@/entities/user";
 import { Header } from "@/widgets/header";
 import { LoginPage } from "@/pages/login";
+import { RegisterPage } from "@/pages/register";
 
 // Защищенный роут
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -61,6 +62,7 @@ const App = () => {
         >
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route
               path="/"
               element={

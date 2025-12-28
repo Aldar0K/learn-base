@@ -1,7 +1,7 @@
 "use client";
 
-import type { User } from "@/entities/user";
 import { useEffect, useState, type ReactNode } from "react";
+import type { User } from "../types";
 import { authApi } from "../api";
 import { AuthContext } from "./auth-context.const";
 

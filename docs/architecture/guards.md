@@ -16,8 +16,13 @@ admin > author > student
 
 ### 1. `JwtAuthGuard`
 Проверяет наличие валидного JWT токена. Токен может быть в:
-- Http-only cookie (`access_token`)
-- Authorization header (`Bearer <token>`)
+- **Http-only cookie** (`access_token`) - основной способ, используется по умолчанию
+- Authorization header (`Bearer <token>`) - для обратной совместимости
+
+**Безопасность:**
+- Токены хранятся в http-only cookies, недоступны через JavaScript
+- SameSite: lax для защиты от CSRF
+- Secure flag в production (только HTTPS)
 
 ### 2. `RolesGuard`
 Проверяет роль пользователя с учетом иерархии. Если пользователь имеет роль `admin`, он автоматически имеет доступ ко всем операциям, доступным для `author` и `student`.

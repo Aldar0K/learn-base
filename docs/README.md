@@ -16,4 +16,5 @@
 - [`architecture/`](./architecture/) - Общая архитектура
   - [`backend.md`](./architecture/backend.md) - Архитектура бекенда
   - [`frontend.md`](./architecture/frontend.md) - Архитектура фронтенда
+  - [`guards.md`](./architecture/guards.md) - Система авторизации и guards
 

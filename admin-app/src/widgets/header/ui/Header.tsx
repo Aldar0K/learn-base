@@ -2,7 +2,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { ThemeSwitch } from "@/features/switch-theme";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/entities/user";
 import { cn } from "@/shared/utils";
 
 export type HeaderProps = {

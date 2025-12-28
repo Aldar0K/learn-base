@@ -88,6 +88,34 @@
 - Перезапуск сервиса: `docker compose restart <service>`
 - Логи: `docker compose logs -f <service>`
 
+## Аутентификация
+
+Проект использует **http-only cookies** для безопасного хранения JWT токенов.
+
+**Особенности:**
+- Токены автоматически отправляются с каждым запросом
+- Недоступны через JavaScript (защита от XSS)
+- SameSite: lax (защита от CSRF)
+- Secure в production (только HTTPS)
+
+**Роли пользователей:**
+- `student` - может проходить курсы
+- `author` - может создавать и редактировать курсы
+- `admin` - полный доступ ко всем операциям
+
+**API endpoints:**
+- `POST /api/auth/register` - регистрация
+- `POST /api/auth/login` - вход
+- `POST /api/auth/logout` - выход
+- `GET /api/auth/me` - текущий пользователь
+
+## Документация
+
+- [`docs/architecture/backend.md`](./docs/architecture/backend.md) - архитектура бекенда
+- [`docs/architecture/frontend.md`](./docs/architecture/frontend.md) - архитектура фронтенда
+- [`docs/architecture/guards.md`](./docs/architecture/guards.md) - система авторизации
+- [`docs/database/design.md`](./docs/database/design.md) - дизайн базы данных
+
 ## Замечания по секретам
 - Не клади секреты в образы и не используйте `NEXT_PUBLIC_*` для чувствительных значений — всё с таким префиксом попадет в бандл.
 - Бэкенд читает секреты из env при запуске контейнера; `.env.*` остаются вне образа и подключаются через `--env-file`.
