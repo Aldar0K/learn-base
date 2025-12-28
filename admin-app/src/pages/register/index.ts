@@ -1,2 +1,1 @@
 export { RegisterPage } from "./ui";
-
