@@ -38,7 +38,11 @@ backend/
   prisma/
     schema.prisma     # Схема БД
     migrations/       # Миграции
-    seed.ts           # Сиды
+    seed.ts           # Сиды (TypeScript)
+    seed.js           # Скомпилированный seed для prod (генерируется при сборке)
+  Dockerfile.dev      # Dockerfile для разработки
+  Dockerfile.prod     # Dockerfile для продакшена (multi-stage)
+  Dockerfile.prisma-studio  # Dockerfile для Prisma Studio
 ```
 
 ## Структура данных
@@ -164,4 +168,28 @@ backend/
 - Валидация email, пароля при регистрации
 - Валидация JSONB content для шагов
 - Валидация позиций уроков и шагов
+
+## Работа с базой данных
+
+### Prisma ORM
+
+**Миграции:**
+- **Dev**: `yarn prisma:migrate` (создает и применяет миграции)
+- **Prod**: `yarn prisma migrate deploy` (только применяет существующие миграции)
+
+**Seed (тестовые данные):**
+- **Dev**: `yarn prisma:seed` (запускает TypeScript файл через ts-node)
+- **Prod**: `yarn prisma:seed:prod` (запускает скомпилированный JavaScript файл)
+- Seed компилируется при сборке prod образа из `seed.ts` в `seed.js`
+
+**Prisma Studio:**
+- Визуальный редактор базы данных
+- Доступен в обоих окружениях (dev и prod) на порту 5555
+- Использует отдельный `Dockerfile.prisma-studio` для оптимизации
+- **Важно**: В продакшене ограничьте доступ к Prisma Studio (VPN, firewall)
+
+**Структура Dockerfile'ов:**
+- `Dockerfile.dev` - для разработки с hot-reload
+- `Dockerfile.prod` - оптимизированный для продакшена (multi-stage build)
+- `Dockerfile.prisma-studio` - отдельный образ для Prisma Studio (включает dev зависимости для Prisma CLI)
 

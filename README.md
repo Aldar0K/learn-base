@@ -47,7 +47,7 @@
    - Backend: http://localhost:3001
    - Admin-app: http://localhost:3000
    - Client-app: http://localhost:3002
-   - Prisma Studio: http://localhost:5555 (только dev)
+   - Prisma Studio: http://localhost:5555
 
 5) Проверка работоспособности:
    ```bash
@@ -64,12 +64,26 @@
    # И скопируй .env.example внутри каждого приложения
    ```
 
-2) Сборка и запуск:
+2) Примени миграции БД (один раз перед первым запуском):
+   ```bash
+   cd learnbase-config-prod
+   docker compose run --rm backend yarn prisma migrate deploy
+   # Опционально: заполнить тестовыми данными
+   docker compose run --rm backend yarn prisma:seed:prod
+   ```
+
+3) Сборка и запуск:
    ```bash
    cd learnbase-config-prod
    docker compose --env-file .env up --build -d
    ```
    Приложения соберутся и запустятся в фоновом режиме без hot reload.
+   
+   Приложения будут доступны:
+   - Backend: http://localhost:3001
+   - Admin-app: http://localhost:3000
+   - Client-app: http://localhost:3002
+   - Prisma Studio: http://localhost:5555
 
 ## Полезные команды
 
@@ -79,9 +93,18 @@
 - После изменения `package.json`: переустанови зависимости через `docker compose run --rm <service> npm install` (или `yarn install` для backend)
 
 ### Работа с БД (Prisma)
-- Миграции: `docker compose run --rm backend yarn prisma:migrate`
-- Сиды: `docker compose run --rm backend yarn prisma:seed`
-- Prisma Studio: `docker compose up prisma-studio` (доступен на http://localhost:5555)
+
+**Dev окружение:**
+- Миграции: `docker compose run --rm backend yarn prisma:migrate` (создает и применяет)
+- Seed: `docker compose run --rm backend yarn prisma:seed` (TypeScript через ts-node)
+- Prisma Studio: автоматически запускается с `docker compose up`, доступен на http://localhost:5555
+
+**Prod окружение:**
+- Миграции: `docker compose run --rm backend yarn prisma migrate deploy` (только применяет существующие)
+- Seed: `docker compose run --rm backend yarn prisma:seed:prod` (скомпилированный JavaScript)
+- Prisma Studio: автоматически запускается с `docker compose up`, доступен на http://localhost:5555
+
+**Примечание:** Prisma Studio использует отдельный `Dockerfile.prisma-studio` для оптимизации сборки.
 
 ### Управление контейнерами
 - Остановка: `docker compose down`
