@@ -3,24 +3,23 @@ FROM node:20-slim
 WORKDIR /usr/app
 
 # Установка OpenSSL для Prisma и procps для NestJS watch mode
-# Debian-based образы имеют лучшую совместимость с Prisma
 RUN apt-get update && \
     apt-get install -y openssl procps && \
     rm -rf /var/lib/apt/lists/*
 
+# Копируем файлы зависимостей
 COPY package.json yarn.lock ./
 
-# Копируем prisma схему до установки зависимостей, чтобы postinstall мог сгенерировать клиент
+# Копируем prisma схему до установки зависимостей
 COPY prisma ./prisma
 
-# Удаляем старый Prisma Client если есть (чтобы избежать проблем с кешем)
-RUN rm -rf node_modules/.prisma node_modules/@prisma/client 2>/dev/null || true
-
+# Устанавливаем все зависимости (включая dev для разработки)
 RUN yarn install
 
+# Копируем исходный код
 COPY . .
 
-# Перегенерируем Prisma Client для правильной платформы
+# Генерируем Prisma Client для правильной платформы
 RUN yarn prisma:generate
 
 CMD ["yarn", "start:dev"]

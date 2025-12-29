@@ -28,9 +28,12 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       HASH_SALT: ${HASH_SALT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-password123}
       SEED_AUTHOR_PASSWORD: ${SEED_AUTHOR_PASSWORD:-password123}
       SEED_STUDENT_PASSWORD: ${SEED_STUDENT_PASSWORD:-password123}
+      FRONTEND_URL: ${FRONTEND_URL}
     env_file:
       - .env
     networks:
@@ -71,6 +74,25 @@ services:
       - .env
     networks:
       - learnbase-prod
+    restart: always
+
+  prisma-studio:
+    container_name: learnbase-prisma-studio-prod
+    platform: linux/amd64
+    build:
+      context: ../backend
+      dockerfile: ./Dockerfile.prisma-studio
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    env_file:
+      - .env
+    networks:
+      - learnbase-prod
+    depends_on:
+      - db
+      - backend
     restart: always
 
 networks:

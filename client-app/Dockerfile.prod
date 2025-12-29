@@ -21,6 +21,7 @@ COPY --from=builder /usr/app/package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 
 COPY --from=builder /usr/app/.next ./.next
+RUN mkdir -p ./public
 COPY --from=builder /usr/app/public ./public
 
 CMD ["npm", "run", "start"]

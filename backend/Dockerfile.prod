@@ -7,17 +7,29 @@ RUN apt-get update && \
     apt-get install -y openssl && \
     rm -rf /var/lib/apt/lists/*
 
+# Копируем файлы зависимостей
 COPY package.json yarn.lock ./
 
 # Копируем prisma схему до установки зависимостей
 COPY prisma ./prisma
 
+# Устанавливаем все зависимости (нужны для сборки)
 RUN yarn install
 
+# Копируем исходный код
 COPY . .
 
-# Генерируем Prisma Client и собираем приложение
-RUN yarn prisma:generate && yarn build
+# Генерируем Prisma Client, компилируем seed и собираем приложение
+RUN yarn prisma:generate && \
+    npx tsc prisma/seed.ts \
+      --outDir prisma \
+      --module commonjs \
+      --target es2017 \
+      --esModuleInterop \
+      --resolveJsonModule \
+      --skipLibCheck \
+      --moduleResolution node && \
+    yarn build
 
 FROM node:20-slim
 
@@ -30,16 +42,23 @@ RUN apt-get update && \
     apt-get install -y openssl && \
     rm -rf /var/lib/apt/lists/*
 
+# Копируем файлы зависимостей
 COPY package.json yarn.lock ./
 
-# Копируем prisma схему
+# Копируем prisma схему (нужна для Prisma Client)
 COPY prisma ./prisma
 
-RUN yarn install --production=true
+# Устанавливаем только production зависимости
+RUN yarn install --production=true --frozen-lockfile
 
-# Генерируем Prisma Client для production
-RUN yarn prisma:generate
+# Копируем сгенерированный Prisma Client из builder stage
+COPY --from=builder /usr/app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /usr/app/node_modules/@prisma ./node_modules/@prisma
 
+# Копируем собранное приложение
 COPY --from=builder /usr/app/dist ./dist
+
+# Копируем скомпилированный seed файл для возможности запуска seed в prod
+COPY --from=builder /usr/app/prisma/seed.js ./prisma/seed.js
 
 CMD ["yarn", "start:prod"]
