@@ -5,7 +5,6 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/shared/ui";
-import { cn } from "@/shared/utils";
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme();
