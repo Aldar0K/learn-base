@@ -1,20 +1,20 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import cookieParser from 'cookie-parser';
+import { Logger, ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import cookieParser from "cookie-parser";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix("api");
 
   // Cookie parser для работы с http-only cookies
   app.use(cookieParser());
 
   // CORS настройка для работы с credentials (cookies)
   const allowedOrigins = [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:3000', // admin-app
-    'http://localhost:3002', // client-app
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    "http://localhost:3000", // admin-app
+    "http://localhost:3002", // client-app
   ];
 
   app.enableCors({
@@ -28,14 +28,17 @@ async function bootstrap() {
         return callback(null, true);
       }
       // В dev режиме разрешаем все локальные origin'ы
-      if (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:')) {
+      if (
+        process.env.NODE_ENV === "development" &&
+        origin.startsWith("http://localhost:")
+      ) {
         return callback(null, true);
       }
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true, // Разрешаем отправку cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   // Глобальная валидация
@@ -44,7 +47,7 @@ async function bootstrap() {
       whitelist: true, // Удаляет свойства, которых нет в DTO
       forbidNonWhitelisted: true, // Выбрасывает ошибку, если есть лишние свойства
       transform: true, // Автоматически преобразует типы
-    }),
+    })
   );
 
   const port = process.env.PORT || 3001;

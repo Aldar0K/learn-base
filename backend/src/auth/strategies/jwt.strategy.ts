@@ -15,7 +15,7 @@ export interface JwtPayload {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -48,4 +48,3 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return user;
   }
 }
-

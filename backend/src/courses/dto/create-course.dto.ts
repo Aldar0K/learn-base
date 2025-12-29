@@ -10,4 +10,3 @@ export class CreateCourseDto {
   @IsOptional()
   description?: string;
 }
-

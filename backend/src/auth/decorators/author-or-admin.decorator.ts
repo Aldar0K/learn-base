@@ -11,7 +11,6 @@ import { Roles } from "./roles.decorator";
 export const AuthorOrAdmin = () => {
   return applyDecorators(
     UseGuards(JwtAuthGuard, RolesGuard),
-    Roles(UserRole.author, UserRole.admin),
+    Roles(UserRole.author, UserRole.admin)
   );
 };
-

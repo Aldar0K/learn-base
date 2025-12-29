@@ -9,4 +9,3 @@ import { PrismaService } from "../common/prisma";
   exports: [CoursesService],
 })
 export class CoursesModule {}
-

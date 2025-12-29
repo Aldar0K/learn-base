@@ -8,4 +8,3 @@ import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 export const Authenticated = () => {
   return applyDecorators(UseGuards(JwtAuthGuard));
 };
-

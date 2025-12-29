@@ -17,7 +17,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("register")
-  async register(@Body() registerDto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) res: Response
+  ) {
     const result = await this.authService.register(registerDto);
 
     // Устанавливаем http-only cookie с токеном
@@ -37,7 +40,10 @@ export class AuthController {
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response
+  ) {
     const result = await this.authService.login(loginDto);
 
     // Устанавливаем http-only cookie с токеном
@@ -72,15 +78,18 @@ export class AuthController {
 
   @Get("me")
   @Authenticated()
-  async getMe(@CurrentUser() user: { id: string; email: string; role: string }) {
+  async getMe(
+    @CurrentUser() user: { id: string; email: string; role: string }
+  ) {
     return { user };
   }
 
   // Пример защищенного endpoint только для админов
   @Get("admin-only")
   @AdminOnly()
-  async adminOnly(@CurrentUser() user: { id: string; email: string; role: string }) {
+  async adminOnly(
+    @CurrentUser() user: { id: string; email: string; role: string }
+  ) {
     return { message: "This is admin only endpoint", user };
   }
 }
-

@@ -1,16 +1,16 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
   ParseUUIDPipe,
+  Patch,
+  Post,
 } from "@nestjs/common";
+import { Authenticated, AuthorOrAdmin, CurrentUser } from "../auth/decorators";
 import { CoursesService } from "./courses.service";
 import { CreateCourseDto, UpdateCourseDto } from "./dto";
-import { CurrentUser, Authenticated, AuthorOrAdmin, AdminOnly } from "../auth/decorators";
 
 @Controller("courses")
 export class CoursesController {
@@ -21,7 +21,7 @@ export class CoursesController {
   @AuthorOrAdmin()
   async create(
     @Body() createCourseDto: CreateCourseDto,
-    @CurrentUser() user: { id: string; role: string },
+    @CurrentUser() user: { id: string; role: string }
   ) {
     return this.coursesService.create(createCourseDto, user.id);
   }
@@ -52,7 +52,7 @@ export class CoursesController {
   async update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() updateCourseDto: UpdateCourseDto,
-    @CurrentUser() user: { id: string; role: string },
+    @CurrentUser() user: { id: string; role: string }
   ) {
     return this.coursesService.update(id, updateCourseDto, user.id, user.role);
   }
@@ -62,9 +62,8 @@ export class CoursesController {
   @AuthorOrAdmin()
   async remove(
     @Param("id", ParseUUIDPipe) id: string,
-    @CurrentUser() user: { id: string; role: string },
+    @CurrentUser() user: { id: string; role: string }
   ) {
     return this.coursesService.remove(id, user.id, user.role);
   }
 }
-

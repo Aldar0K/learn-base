@@ -9,6 +9,8 @@ import { Roles } from "./roles.decorator";
  * Админ может все
  */
 export const AdminOnly = () => {
-  return applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(UserRole.admin));
+  return applyDecorators(
+    UseGuards(JwtAuthGuard, RolesGuard),
+    Roles(UserRole.admin)
+  );
 };
-

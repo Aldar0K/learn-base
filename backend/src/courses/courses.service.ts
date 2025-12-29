@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from "@nestjs/common";
 import { PrismaService } from "../common/prisma";
 import { CreateCourseDto, UpdateCourseDto } from "./dto";
 
@@ -70,12 +74,19 @@ export class CoursesService {
     return course;
   }
 
-  async update(id: string, updateCourseDto: UpdateCourseDto, userId: string, userRole: string) {
+  async update(
+    id: string,
+    updateCourseDto: UpdateCourseDto,
+    userId: string,
+    userRole: string
+  ) {
     const course = await this.findOne(id);
 
     // Проверяем права: только автор курса или админ могут редактировать
     if (course.authorId !== userId && userRole !== "admin") {
-      throw new ForbiddenException("You don't have permission to edit this course");
+      throw new ForbiddenException(
+        "You don't have permission to edit this course"
+      );
     }
 
     return this.prisma.course.update({
@@ -98,7 +109,9 @@ export class CoursesService {
 
     // Проверяем права: только автор курса или админ могут удалять
     if (course.authorId !== userId && userRole !== "admin") {
-      throw new ForbiddenException("You don't have permission to delete this course");
+      throw new ForbiddenException(
+        "You don't have permission to delete this course"
+      );
     }
 
     return this.prisma.course.delete({
@@ -146,4 +159,3 @@ export class CoursesService {
     });
   }
 }
-
