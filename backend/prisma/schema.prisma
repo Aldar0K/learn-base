@@ -48,7 +48,7 @@ model Course {
   createdAt   DateTime  @default(now()) @map("created_at")
 
   // Связи
-  author      User      @relation("CourseAuthor", fields: [authorId], references: [id])
+  author      User      @relation("CourseAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
   enrollments Enrollment[]
 

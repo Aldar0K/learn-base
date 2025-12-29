@@ -2,11 +2,23 @@
 // Запуск: npm run prisma:seed или yarn prisma:seed
 
 import { PrismaClient } from "@prisma/client";
+import * as bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+// Пароли из переменных окружения с fallback значениями
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "password123";
+const AUTHOR_PASSWORD = process.env.SEED_AUTHOR_PASSWORD || "password123";
+const STUDENT_PASSWORD = process.env.SEED_STUDENT_PASSWORD || "password123";
+
 async function main() {
   console.log("🌱 Seeding database...");
+
+  // Хешируем пароли для каждого пользователя отдельно
+  const saltRounds = 10;
+  const adminPasswordHash = await bcrypt.hash(ADMIN_PASSWORD, saltRounds);
+  const authorPasswordHash = await bcrypt.hash(AUTHOR_PASSWORD, saltRounds);
+  const studentPasswordHash = await bcrypt.hash(STUDENT_PASSWORD, saltRounds);
 
   // Создаем тестовых пользователей
   const admin = await prisma.user.upsert({
@@ -14,7 +26,7 @@ async function main() {
     update: {},
     create: {
       email: "admin@learnbase.com",
-      passwordHash: "$2b$10$example", // В реальности - хеш пароля
+      passwordHash: adminPasswordHash,
       role: "admin",
     },
   });
@@ -24,7 +36,7 @@ async function main() {
     update: {},
     create: {
       email: "author@learnbase.com",
-      passwordHash: "$2b$10$example",
+      passwordHash: authorPasswordHash,
       role: "author",
     },
   });
@@ -34,12 +46,18 @@ async function main() {
     update: {},
     create: {
       email: "student@learnbase.com",
-      passwordHash: "$2b$10$example",
+      passwordHash: studentPasswordHash,
       role: "student",
     },
   });
 
   console.log("✅ Users created");
+  console.log("\n📋 Test accounts:");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log(`Admin:   ${admin.email} / ${ADMIN_PASSWORD}`);
+  console.log(`Author:  ${author.email} / ${AUTHOR_PASSWORD}`);
+  console.log(`Student: ${student.email} / ${STUDENT_PASSWORD}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
   // Создаем тестовый курс
   const course = await prisma.course.create({

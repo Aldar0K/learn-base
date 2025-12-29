@@ -31,6 +31,9 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       HASH_SALT: ${HASH_SALT}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-password123}
+      SEED_AUTHOR_PASSWORD: ${SEED_AUTHOR_PASSWORD:-password123}
+      SEED_STUDENT_PASSWORD: ${SEED_STUDENT_PASSWORD:-password123}
     env_file:
       - .env
     networks:
