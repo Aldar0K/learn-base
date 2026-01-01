@@ -1,8 +1,7 @@
 "use client";
 
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/entities/auth";
 import { ThemeSwitch } from "@/features/switch-theme";
-import { useAuth } from "@/entities/user";
 import { Button } from "@/shared/ui";
 import { cn } from "@/shared/utils";
 
@@ -12,11 +11,9 @@ export type HeaderProps = {
 
 export const Header = ({ className }: HeaderProps) => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
   };
 
   return (
@@ -39,11 +36,7 @@ export const Header = ({ className }: HeaderProps) => {
             {user.email} ({user.role})
           </div>
         )}
-        <Button
-          onClick={handleLogout}
-          variant="ghost"
-          size="sm"
-        >
+        <Button onClick={handleLogout} variant="ghost" size="sm">
           Logout
         </Button>
         <ThemeSwitch />

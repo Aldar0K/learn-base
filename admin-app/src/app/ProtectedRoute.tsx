@@ -1,4 +1,4 @@
-import { useAuth } from "@/entities/user";
+import { useAuth } from "@/entities/auth";
 import { type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 

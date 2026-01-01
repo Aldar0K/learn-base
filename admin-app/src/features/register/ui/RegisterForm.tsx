@@ -1,26 +1,19 @@
 "use client";
 
-import { useAuth } from "@/entities/user";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import { useAuth } from "@/entities/auth";
 import { Button } from "@/shared/ui/button/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { AxiosError } from "axios";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 
 export const RegisterForm = () => {
-  const navigate = useNavigate();
-  const { register, isAuthenticated } = useAuth();
+  const { register } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Если уже авторизован, перенаправляем на главную
-  if (isAuthenticated) {
-    navigate("/", { replace: true });
-    return null;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +22,15 @@ export const RegisterForm = () => {
 
     try {
       await register(email, password);
-      navigate("/", { replace: true });
+      // Навигация произойдет автоматически через useEffect в AuthProvider
     } catch (err: unknown) {
-      if (err instanceof AxiosError) {
-        setError(err.response?.data?.message || "Registration failed");
-      } else {
-        setError("An error occurred");
-      }
+      const error = err as { data?: { message?: string }; status?: number };
+      setError(
+        error?.data?.message ||
+          (error?.status === 409
+            ? "User already exists"
+            : "Registration failed")
+      );
     } finally {
       setIsLoading(false);
     }

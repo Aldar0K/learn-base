@@ -1,5 +1,5 @@
+import { useAuth } from "@/entities/auth";
 import { Header } from "@/widgets/header";
-import { useAuth } from "@/entities/user";
 
 export const HomePage = () => {
   const { user } = useAuth();
