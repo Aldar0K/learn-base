@@ -4,9 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "@/entities/auth";
-import { Button } from "@/shared/ui/button/button";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { Button, Input, Label } from "@/shared/ui";
 
 export const LoginForm = () => {
   const { login } = useAuth();
