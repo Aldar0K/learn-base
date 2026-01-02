@@ -1,5 +1,6 @@
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import cookieParser from "cookie-parser";
 
@@ -50,10 +51,32 @@ async function bootstrap() {
     })
   );
 
+  // Swagger документация
+  const config = new DocumentBuilder()
+    .setTitle("LearnBase API")
+    .setDescription("API для платформы обучения LearnBase")
+    .setVersion("1.0")
+    .addTag("auth", "Аутентификация и авторизация")
+    .addTag("courses", "Управление курсами")
+    .addCookieAuth("access_token", {
+      type: "http",
+      in: "Cookie",
+      scheme: "Bearer",
+    })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api/docs", app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
+
   const port = process.env.PORT || 3001;
   await app.listen(port);
 
   Logger.log(`Backend listening on http://localhost:${port}/api`);
+  Logger.log(`Swagger docs: http://localhost:${port}/api/docs`);
   Logger.log(`Health check: http://localhost:${port}/api/health`);
   Logger.log(`Auth endpoints: http://localhost:${port}/api/auth`);
 }

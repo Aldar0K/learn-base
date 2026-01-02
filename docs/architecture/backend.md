@@ -193,3 +193,31 @@ backend/
 - `Dockerfile.prod` - оптимизированный для продакшена (multi-stage build)
 - `Dockerfile.prisma-studio` - отдельный образ для Prisma Studio (включает dev зависимости для Prisma CLI)
 
+## API Документация (Swagger)
+
+**Доступ:**
+- Swagger UI: `http://localhost:3001/api/docs`
+- Доступен в обоих окружениях (dev и prod)
+
+**Функциональность:**
+- Интерактивная документация всех API endpoints
+- Автоматическая генерация схем из DTO
+- Возможность тестирования API прямо из браузера
+- Поддержка cookie-based аутентификации (http-only cookies)
+
+**Использование:**
+1. Откройте `http://localhost:3001/api/docs` в браузере
+2. Для тестирования защищенных endpoints:
+   - Сначала выполните `/auth/login` или `/auth/register`
+   - Cookie будет установлена автоматически
+   - Нажмите кнопку "Authorize" в Swagger UI
+   - Введите `access_token` в поле (или оставьте пустым, если cookie уже установлена)
+   - Теперь можно тестировать защищенные endpoints
+
+**Декораторы Swagger:**
+- `@ApiTags()` - группировка endpoints по тегам
+- `@ApiOperation()` - описание операции
+- `@ApiResponse()` - описание возможных ответов
+- `@ApiProperty()` - описание полей DTO
+- `@ApiCookieAuth()` - указание на использование cookie аутентификации
+

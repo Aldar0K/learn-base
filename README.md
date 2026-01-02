@@ -48,6 +48,7 @@
    - Admin-app: http://localhost:3000
    - Client-app: http://localhost:3002
    - Prisma Studio: http://localhost:5555
+   - Swagger API Docs: http://localhost:3001/api/docs
 
 5) Проверка работоспособности:
    ```bash
