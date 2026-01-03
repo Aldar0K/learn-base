@@ -2,17 +2,21 @@
 
 import type React from "react";
 
+import { AuthProvider } from "@/entities/auth";
+import { StoreProvider } from "@/providers/StoreProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      storageKey="learnbase-client-theme"
-      enableSystem={false}
-    >
-      {children}
-    </ThemeProvider>
+    <StoreProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        storageKey="learnbase-client-theme"
+        enableSystem={false}
+      >
+        <AuthProvider>{children}</AuthProvider>
+      </ThemeProvider>
+    </StoreProvider>
   );
 }
