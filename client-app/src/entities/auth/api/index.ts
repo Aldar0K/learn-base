@@ -5,5 +5,6 @@ export {
   useLogoutMutation,
   useGetMeQuery,
   useLazyGetMeQuery,
+  useRefreshMutation,
 } from "./auth.api";
 export type { RegisterDto, LoginDto, AuthResponse } from "./auth.api";

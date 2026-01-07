@@ -5,7 +5,9 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
+  UnauthorizedException,
 } from "@nestjs/common";
 import {
   ApiCookieAuth,
@@ -13,7 +15,7 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AdminOnly, Authenticated, CurrentUser } from "./decorators";
 import { LoginDto, RegisterDto } from "./dto";
@@ -50,16 +52,27 @@ export class AuthController {
   ) {
     const result = await this.authService.register(registerDto);
 
-    // Устанавливаем http-only cookie с токеном
+    // Устанавливаем http-only cookies с токенами
+    const accessTokenMaxAge = 15 * 60 * 1000; // 15 минут
+    const refreshTokenMaxAge = 7 * 24 * 60 * 60 * 1000; // 7 дней
+
     res.cookie("access_token", result.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // HTTPS только в production
-      sameSite: "lax", // Защита от CSRF
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: accessTokenMaxAge,
       path: "/",
     });
 
-    // Возвращаем только пользователя, без токена
+    res.cookie("refresh_token", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: refreshTokenMaxAge,
+      path: "/",
+    });
+
+    // Возвращаем только пользователя, без токенов
     return {
       user: result.user,
     };
@@ -92,16 +105,27 @@ export class AuthController {
   ) {
     const result = await this.authService.login(loginDto);
 
-    // Устанавливаем http-only cookie с токеном
+    // Устанавливаем http-only cookies с токенами
+    const accessTokenMaxAge = 15 * 60 * 1000; // 15 минут
+    const refreshTokenMaxAge = 7 * 24 * 60 * 60 * 1000; // 7 дней
+
     res.cookie("access_token", result.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // HTTPS только в production
-      sameSite: "lax", // Защита от CSRF
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: accessTokenMaxAge,
       path: "/",
     });
 
-    // Возвращаем только пользователя, без токена
+    res.cookie("refresh_token", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: refreshTokenMaxAge,
+      path: "/",
+    });
+
+    // Возвращаем только пользователя, без токенов
     return {
       user: result.user,
     };
@@ -124,7 +148,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: "Не авторизован" })
   async logout(@Res({ passthrough: true }) res: Response) {
-    // Очищаем cookie
+    // Очищаем cookies с токенами
     res.clearCookie("access_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -132,7 +156,69 @@ export class AuthController {
       path: "/",
     });
 
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
     return { message: "Logged out successfully" };
+  }
+
+  @Post("refresh")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Обновить access token" })
+  @ApiResponse({
+    status: 200,
+    description: "Токен успешно обновлен",
+    schema: {
+      type: "object",
+      properties: {
+        user: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            email: { type: "string" },
+            role: { type: "string", enum: ["student", "author", "admin"] },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: "Неверный refresh token" })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body() body?: { refreshToken?: string }
+  ) {
+    // Получаем refresh token из cookie или body
+    const refreshToken = body?.refreshToken || req.cookies?.refresh_token;
+
+    if (!refreshToken) {
+      // Логируем для отладки
+      console.log("Refresh token not found. Cookies:", req.cookies);
+      console.log("Request headers:", req.headers.cookie);
+      throw new UnauthorizedException("Refresh token not provided");
+    }
+
+    const result = await this.authService.refreshToken(refreshToken);
+
+    // Устанавливаем новый access token в cookie
+    const accessTokenMaxAge = 15 * 60 * 1000; // 15 минут
+
+    res.cookie("access_token", result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: accessTokenMaxAge,
+      path: "/",
+    });
+
+    // Возвращаем только пользователя, без токена
+    return {
+      user: result.user,
+    };
   }
 
   @Get("me")

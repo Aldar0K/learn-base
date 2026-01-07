@@ -23,7 +23,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     (state: { auth: { user: User | null; isLoading: boolean } }) => state.auth
   );
 
+  const [loginMutation] = useLoginMutation();
+  const [registerMutation] = useRegisterMutation();
+  const [logoutMutation] = useLogoutMutation();
+
   // Используем isLoading из RTK Query для более точного отслеживания состояния загрузки
+  // getMe всегда вызывается - если access token отсутствует, бекенд вернет 401,
+  // и интерцептор автоматически попытается обновить токен через refresh token
   const { isLoading: isGetMeLoading } = useGetMeQuery();
   const { isLoading: isLoadingFromSlice } = useSelector(
     (state: { auth: { user: User | null; isLoading: boolean } }) => state.auth
@@ -31,10 +37,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // isLoading = true если идет запрос getMe ИЛИ если в slice установлен loading
   const isLoading = isGetMeLoading || isLoadingFromSlice;
-
-  const [loginMutation] = useLoginMutation();
-  const [registerMutation] = useRegisterMutation();
-  const [logoutMutation] = useLogoutMutation();
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
 

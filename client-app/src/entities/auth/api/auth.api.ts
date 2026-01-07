@@ -73,10 +73,31 @@ export const authApi = baseApi.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(authActions.setUser(data.user));
-        } catch {
-          dispatch(authActions.setUser(null));
+        } catch (error) {
+          // Если ошибка 401 и refresh не помог - очищаем user
+          // Интерцептор уже попытался обновить токен
+          const err = error as { status?: number };
+          if (err.status === 401) {
+            dispatch(authActions.setUser(null));
+          }
         } finally {
           dispatch(authActions.setLoading(false));
+        }
+      },
+    }),
+
+    refresh: builder.mutation<AuthResponse, void>({
+      query: () => ({
+        url: "/auth/refresh",
+        method: "POST",
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(authActions.setUser(data.user));
+        } catch {
+          // При ошибке refresh очищаем user
+          dispatch(authActions.setUser(null));
         }
       },
     }),
@@ -89,4 +110,5 @@ export const {
   useLogoutMutation,
   useGetMeQuery,
   useLazyGetMeQuery,
+  useRefreshMutation,
 } = authApi;

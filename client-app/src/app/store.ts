@@ -19,48 +19,118 @@ type BaseQueryError = {
   data: unknown;
 };
 
-// Base query на axios для поддержки cookies
+let isRefreshing = false;
+let refreshPromise: Promise<void> | null = null;
+
+const refreshToken = async (): Promise<void> => {
+  await apiClient.post("/auth/refresh");
+};
+
+// Base query на axios для поддержки cookies с автоматическим refresh
 const axiosBaseQuery: BaseQueryFn<
   BaseQueryArgs,
   unknown,
   BaseQueryError
-> = async (args, api) => {
-  try {
-    const url = typeof args === "string" ? args : args.url;
-    const method = typeof args === "string" ? "GET" : args.method || "GET";
-    const data = typeof args === "string" ? undefined : args.data;
-    const params = typeof args === "string" ? undefined : args.params;
+> = async (args, api, extraOptions) => {
+  const url = typeof args === "string" ? args : args.url;
+  const method = typeof args === "string" ? "GET" : args.method || "GET";
+  const data = typeof args === "string" ? undefined : args.data;
+  const params = typeof args === "string" ? undefined : args.params;
 
-    const result = await apiClient({
-      url: url.startsWith("/") ? url : `/${url}`,
-      method,
-      data,
-      params,
-    });
-    return { data: result.data };
-  } catch (axiosError) {
-    const err = axiosError as AxiosError<{ message?: string }>;
-    const status = err.response?.status || 500;
+  const makeRequest = async () => {
+    try {
+      const result = await apiClient({
+        url: url.startsWith("/") ? url : `/${url}`,
+        method,
+        data,
+        params,
+      });
+      return { data: result.data };
+    } catch (axiosError) {
+      const err = axiosError as AxiosError<{ message?: string }>;
+      const status = err.response?.status || 500;
 
-    // При 401 (Unauthorized) очищаем user в auth slice
-    if (status === 401) {
-      const url = typeof args === "string" ? args : args.url;
-      const normalizedUrl = url.startsWith("/") ? url : `/${url}`;
-      const isMeRequest = normalizedUrl === "/auth/me";
+      // При 401 пытаемся обновить токен (кроме запроса на refresh)
+      if (status === 401 && url !== "/auth/refresh") {
+        // Если уже идет refresh - ждем его завершения
+        if (isRefreshing && refreshPromise) {
+          await refreshPromise;
+          // Повторяем запрос после refresh
+          try {
+            const retryResult = await apiClient({
+              url: url.startsWith("/") ? url : `/${url}`,
+              method,
+              data,
+              params,
+            });
+            return { data: retryResult.data };
+          } catch (retryError) {
+            const retryErr = retryError as AxiosError;
+            return {
+              error: {
+                status: retryErr.response?.status || 500,
+                data: retryErr.response?.data || retryErr.message,
+              },
+            };
+          }
+        }
 
-      if (isMeRequest) {
-        // Для /auth/me при 401 очищаем user в slice
+        // Запускаем refresh
+        if (!isRefreshing) {
+          isRefreshing = true;
+          refreshPromise = refreshToken()
+            .then(() => {
+              isRefreshing = false;
+              refreshPromise = null;
+            })
+            .catch((refreshError) => {
+              isRefreshing = false;
+              refreshPromise = null;
+              // Если refresh не удался - очищаем user
+              if (url === "/auth/me") {
+                api.dispatch(authActions.setUser(null));
+              }
+              throw refreshError;
+            });
+
+          await refreshPromise;
+
+          // Повторяем оригинальный запрос
+          try {
+            const retryResult = await apiClient({
+              url: url.startsWith("/") ? url : `/${url}`,
+              method,
+              data,
+              params,
+            });
+            return { data: retryResult.data };
+          } catch (retryError) {
+            const retryErr = retryError as AxiosError;
+            return {
+              error: {
+                status: retryErr.response?.status || 500,
+                data: retryErr.response?.data || retryErr.message,
+              },
+            };
+          }
+        }
+      }
+
+      // Для /auth/refresh при 401 очищаем user (refresh token истек)
+      if (status === 401 && url === "/auth/refresh") {
         api.dispatch(authActions.setUser(null));
       }
-    }
 
-    return {
-      error: {
-        status,
-        data: err.response?.data || err.message,
-      },
-    };
-  }
+      return {
+        error: {
+          status,
+          data: err.response?.data || err.message,
+        },
+      };
+    }
+  };
+
+  return makeRequest();
 };
 
 // Base API с RTK Query (готов к SSR)

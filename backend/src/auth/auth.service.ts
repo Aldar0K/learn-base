@@ -49,16 +49,20 @@ export class AuthService {
       },
     });
 
-    // Генерируем токен (будет установлен в cookie в контроллере)
-    const accessToken = await this.generateAccessToken({
+    // Генерируем токены (будут установлены в cookie в контроллере)
+    const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
-    });
+    };
+
+    const accessToken = await this.generateAccessToken(payload);
+    const refreshToken = await this.generateRefreshToken(payload);
 
     return {
       user,
-      accessToken, // Возвращаем для возможности установки в cookie
+      accessToken,
+      refreshToken,
     };
   }
 
@@ -81,12 +85,15 @@ export class AuthService {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    // Генерируем токен (будет установлен в cookie в контроллере)
-    const accessToken = await this.generateAccessToken({
+    // Генерируем токены (будут установлены в cookie в контроллере)
+    const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
-    });
+    };
+
+    const accessToken = await this.generateAccessToken(payload);
+    const refreshToken = await this.generateRefreshToken(payload);
 
     return {
       user: {
@@ -94,13 +101,71 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
-      accessToken, // Возвращаем для возможности установки в cookie
+      accessToken,
+      refreshToken,
     };
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      // Валидируем refresh token
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+        refreshToken,
+        {
+          secret:
+            this.configService.get<string>("JWT_REFRESH_SECRET") ||
+            this.configService.get<string>("JWT_SECRET") ||
+            "changeme",
+        }
+      );
+
+      // Проверяем, что пользователь существует
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+        },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException("User not found");
+      }
+
+      // Генерируем новый access token
+      const accessToken = await this.generateAccessToken({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      return {
+        user,
+        accessToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException("Invalid refresh token");
+    }
   }
 
   private async generateAccessToken(payload: JwtPayload): Promise<string> {
     return this.jwtService.signAsync(payload, {
-      expiresIn: this.configService.get<string>("JWT_EXPIRES_IN") || "7d",
+      expiresIn:
+        this.configService.get<string>("JWT_ACCESS_EXPIRES_IN") || "15m",
+    });
+  }
+
+  private async generateRefreshToken(payload: JwtPayload): Promise<string> {
+    const refreshSecret =
+      this.configService.get<string>("JWT_REFRESH_SECRET") ||
+      this.configService.get<string>("JWT_SECRET") ||
+      "changeme";
+
+    return this.jwtService.signAsync(payload, {
+      secret: refreshSecret,
+      expiresIn:
+        this.configService.get<string>("JWT_REFRESH_EXPIRES_IN") || "7d",
     });
   }
 }

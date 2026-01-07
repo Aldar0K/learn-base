@@ -9,6 +9,7 @@ async function bootstrap() {
   app.setGlobalPrefix("api");
 
   // Cookie parser для работы с http-only cookies
+  // Должен быть ДО CORS, чтобы cookies правильно обрабатывались
   app.use(cookieParser());
 
   // CORS настройка для работы с credentials (cookies)
