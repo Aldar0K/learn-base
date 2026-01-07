@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
+import axios, { AxiosInstance } from "axios";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
@@ -11,14 +11,4 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Интерцептор для обработки ошибок
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Неавторизован - можно перенаправить на страницу входа
-      // Это будет обработано в auth context
-    }
-    return Promise.reject(error);
-  }
-);
+// Базовый интерцептор удален - вся логика обработки ошибок в store.ts (baseQuery)
