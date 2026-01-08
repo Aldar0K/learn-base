@@ -63,9 +63,10 @@ backend/
 ### Реализованные endpoints
 
 **Аутентификация:**
-- `POST /api/auth/register` - Регистрация нового пользователя (устанавливает http-only cookie)
-- `POST /api/auth/login` - Вход пользователя (устанавливает http-only cookie)
-- `POST /api/auth/logout` - Выход (очищает cookie, требует аутентификации)
+- `POST /api/auth/register` - Регистрация нового пользователя (устанавливает http-only cookies для access и refresh токенов)
+- `POST /api/auth/login` - Вход пользователя (устанавливает http-only cookies для access и refresh токенов)
+- `POST /api/auth/logout` - Выход (очищает cookies, требует аутентификации)
+- `POST /api/auth/refresh` - Обновление access token через refresh token (устанавливает новые cookies)
 - `GET /api/auth/me` - Получение текущего пользователя (требует аутентификации)
 - `GET /api/auth/admin-only` - Пример endpoint только для админов
 
@@ -122,8 +123,9 @@ backend/
 ## Аутентификация и авторизация
 
 **Реализовано:**
-- JWT токены для аутентификации
+- JWT токены для аутентификации (access token + refresh token)
 - **Http-only cookies** для безопасного хранения токенов
+- Автоматическое обновление access token через refresh token
 - Роли: `student`, `author`, `admin` с иерархией прав
 - Guards для защиты endpoints
 - Декораторы для удобной проверки ролей

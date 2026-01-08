@@ -131,6 +131,7 @@
 - `POST /api/auth/register` - регистрация
 - `POST /api/auth/login` - вход
 - `POST /api/auth/logout` - выход
+- `POST /api/auth/refresh` - обновление access token через refresh token
 - `GET /api/auth/me` - текущий пользователь
 
 ## Документация
