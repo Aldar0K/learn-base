@@ -31,7 +31,7 @@ const axiosBaseQuery: BaseQueryFn<
   BaseQueryArgs,
   unknown,
   BaseQueryError
-> = async (args, api, extraOptions) => {
+> = async (args, api, _extraOptions) => {
   const url = typeof args === "string" ? args : args.url;
   const method = typeof args === "string" ? "GET" : args.method || "GET";
   const data = typeof args === "string" ? undefined : args.data;
