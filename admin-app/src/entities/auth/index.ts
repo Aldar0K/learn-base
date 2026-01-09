@@ -1,13 +1,13 @@
-export { authApi } from "./api/auth.api";
-export type { AuthResponse, LoginDto, RegisterDto } from "./api/auth.api";
 export {
-  useRegisterMutation,
-  useLoginMutation,
-  useLogoutMutation,
+  authApi,
   useGetMeQuery,
   useLazyGetMeQuery,
+  useLoginMutation,
+  useLogoutMutation,
   useRefreshMutation,
-} from "./api/auth.api";
+  useRegisterMutation,
+} from "./model/api";
+export type { AuthResponse, LoginDto, RegisterDto } from "./model/api";
 export { AuthProvider } from "./model/auth-context";
 export { authActions, authReducer } from "./model/auth.slice";
 export { useAuth } from "./model/use-auth";

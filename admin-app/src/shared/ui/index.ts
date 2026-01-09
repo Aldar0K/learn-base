@@ -12,3 +12,7 @@ export {
 export { Input } from "./input";
 export type { InputProps } from "./input";
 export { Label } from "./label";
+export { SuspenseWrapper } from "./suspense-wrapper";
+export type { SuspenseWrapperProps } from "./suspense-wrapper";
+export { Textarea } from "./textarea";
+export type { TextareaProps } from "./textarea";

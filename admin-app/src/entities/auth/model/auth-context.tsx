@@ -1,5 +1,3 @@
-"use client";
-
 import type { User } from "@/entities/user";
 import { useEffect, type ReactNode } from "react";
 import { useSelector } from "react-redux";
@@ -9,7 +7,7 @@ import {
   useLoginMutation,
   useLogoutMutation,
   useRegisterMutation,
-} from "../api/auth.api";
+} from "./api";
 import { AuthContext } from "./auth-context.const";
 
 type AuthProviderProps = {

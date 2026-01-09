@@ -1,6 +1,6 @@
 import { baseApi } from "@/app/store";
 import type { User } from "@/entities/user";
-import { authActions } from "../model/auth.slice";
+import { authActions } from "./auth.slice";
 
 export type RegisterDto = {
   email: string;

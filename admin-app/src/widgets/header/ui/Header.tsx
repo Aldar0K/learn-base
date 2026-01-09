@@ -1,5 +1,4 @@
-"use client";
-
+import { Link } from "react-router-dom";
 import { useAuth } from "@/entities/auth";
 import { ThemeSwitch } from "@/features/switch-theme";
 import { Button } from "@/shared/ui";
@@ -26,8 +25,18 @@ export const Header = ({ className }: HeaderProps) => {
       )}
       data-testid="Header"
     >
-      <div className="flex items-center">
-        <h1 className="text-xl font-bold">LearnBase Admin</h1>
+      <div className="flex items-center gap-6">
+        <Link to="/" className="text-xl font-bold hover:opacity-80">
+          LearnBase Admin
+        </Link>
+        {user && (user.role === "author" || user.role === "admin") && (
+          <Link
+            to="/courses"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Courses
+          </Link>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
