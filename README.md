@@ -32,9 +32,12 @@
 3) Примени миграции БД (один раз перед первым запуском):
    ```bash
    cd learnbase-config-dev
-   docker compose run --rm backend yarn prisma:migrate
+   # Сначала запусти контейнеры
+   docker compose up -d db backend
+   # Затем примени миграции
+   docker compose exec backend npx prisma migrate dev
    # Опционально: заполнить тестовыми данными
-   docker compose run --rm backend yarn prisma:seed
+   docker compose exec backend npm run prisma:seed
    ```
 
 4) Запуск dev окружения (hot reload):
@@ -68,9 +71,12 @@
 2) Примени миграции БД (один раз перед первым запуском):
    ```bash
    cd learnbase-config-prod
-   docker compose run --rm backend yarn prisma migrate deploy
+   # Сначала запусти контейнеры
+   docker compose up -d db backend
+   # Затем примени миграции
+   docker compose exec backend npx prisma migrate deploy
    # Опционально: заполнить тестовыми данными
-   docker compose run --rm backend yarn prisma:seed:prod
+   docker compose exec backend npm run prisma:seed:prod
    ```
 
 3) Сборка и запуск:
@@ -96,14 +102,17 @@
 ### Работа с БД (Prisma)
 
 **Dev окружение:**
-- Миграции: `docker compose run --rm backend yarn prisma:migrate` (создает и применяет)
-- Seed: `docker compose run --rm backend yarn prisma:seed` (TypeScript через ts-node)
+- Миграции: `docker compose exec backend npx prisma migrate dev --name migration_name` (создает и применяет)
+- Seed: `docker compose exec backend npm run prisma:seed` (TypeScript через ts-node)
+- Статус миграций: `docker compose exec backend npx prisma migrate status`
 - Prisma Studio: автоматически запускается с `docker compose up`, доступен на http://localhost:5555
 
 **Prod окружение:**
-- Миграции: `docker compose run --rm backend yarn prisma migrate deploy` (только применяет существующие)
-- Seed: `docker compose run --rm backend yarn prisma:seed:prod` (скомпилированный JavaScript)
+- Миграции: `docker compose exec backend npx prisma migrate deploy` (только применяет существующие)
+- Seed: `docker compose exec backend npm run prisma:seed:prod` (скомпилированный JavaScript)
 - Prisma Studio: автоматически запускается с `docker compose up`, доступен на http://localhost:5555
+
+**Важно:** Команды `exec` требуют, чтобы контейнеры были запущены. Если контейнеры не запущены, используйте `docker compose run --rm backend <command>`.
 
 **Примечание:** Prisma Studio использует отдельный `Dockerfile.prisma-studio` для оптимизации сборки.
 
@@ -133,6 +142,7 @@
 - `POST /api/auth/logout` - выход
 - `POST /api/auth/refresh` - обновление access token через refresh token
 - `GET /api/auth/me` - текущий пользователь
+- `POST /api/auth/users` - создание пользователя с выбором роли (только для админов)
 
 ## Документация
 

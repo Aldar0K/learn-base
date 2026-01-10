@@ -44,6 +44,7 @@ User
 |------|-----|----------|
 | `id` | UUID | Первичный ключ |
 | `email` | VARCHAR | Email (уникальный) |
+| `name` | VARCHAR | Имя пользователя (опционально) |
 | `password_hash` | VARCHAR | Хеш пароля |
 | `role` | ENUM | Роль: `student`, `author`, `admin` |
 | `created_at` | TIMESTAMP | Дата создания |
@@ -208,6 +209,67 @@ CREATE INDEX idx_submissions_user_step ON submissions(user_id, step_id);
 ## Миграции
 
 Миграции находятся в `backend/prisma/migrations/`
+
+### Алгоритм работы с миграциями в Docker окружении
+
+**Важно**: Все команды Prisma выполняются внутри Docker контейнера, где есть доступ к базе данных через `DATABASE_URL`.
+
+#### 1. Изменить схему Prisma
+
+Редактируем `backend/prisma/schema.prisma`:
+```prisma
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?   // ← Добавляем новое поле
+  // ...
+}
+```
+
+#### 2. Создать и применить миграцию
+
+Выполняем в Docker контейнере:
+```bash
+cd learnbase-config-dev
+docker compose exec backend npx prisma migrate dev --name migration_name
+```
+
+**Что происходит:**
+- Prisma сравнивает схему с текущей БД
+- Создает SQL-файл миграции в `backend/prisma/migrations/YYYYMMDDHHMMSS_migration_name/migration.sql`
+- Применяет миграцию к БД
+- Автоматически генерирует обновленный Prisma Client
+
+#### 3. Проверить статус миграций
+
+```bash
+docker compose exec backend npx prisma migrate status
+```
+
+#### Команды для работы с миграциями
+
+```bash
+# Создать и применить миграцию (для разработки)
+docker compose exec backend npx prisma migrate dev --name migration_name
+
+# Применить существующие миграции (для продакшена)
+docker compose exec backend npx prisma migrate deploy
+
+# Проверить статус миграций
+docker compose exec backend npx prisma migrate status
+
+# Сгенерировать Prisma Client (обычно делается автоматически)
+docker compose exec backend npx prisma generate
+
+# Откатить последнюю миграцию (только в dev, сбросит БД)
+docker compose exec backend npx prisma migrate reset
+```
+
+**Важные моменты:**
+- Миграции выполняются в контейнере, где есть доступ к БД через `DATABASE_URL`
+- Файлы миграций создаются в `backend/prisma/migrations/` и должны быть в git
+- Prisma Client генерируется автоматически после применения миграции
+- В продакшене используйте `prisma migrate deploy` вместо `prisma migrate dev`
 
 ## Prisma Studio
 

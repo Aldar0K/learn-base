@@ -68,6 +68,7 @@ backend/
 - `POST /api/auth/logout` - Выход (очищает cookies, требует аутентификации)
 - `POST /api/auth/refresh` - Обновление access token через refresh token (устанавливает новые cookies)
 - `GET /api/auth/me` - Получение текущего пользователя (требует аутентификации)
+- `POST /api/auth/users` - Создание нового пользователя с выбором роли (только для админов)
 - `GET /api/auth/admin-only` - Пример endpoint только для админов
 
 **Курсы:**
@@ -176,8 +177,19 @@ backend/
 ### Prisma ORM
 
 **Миграции:**
-- **Dev**: `yarn prisma:migrate` (создает и применяет миграции)
-- **Prod**: `yarn prisma migrate deploy` (только применяет существующие миграции)
+
+Все команды Prisma выполняются внутри Docker контейнера, где есть доступ к базе данных.
+
+- **Dev**: `docker compose exec backend npx prisma migrate dev --name migration_name` (создает и применяет миграции)
+- **Prod**: `docker compose exec backend npx prisma migrate deploy` (только применяет существующие миграции)
+
+**Алгоритм работы с миграциями:**
+
+1. Изменить схему `backend/prisma/schema.prisma`
+2. Создать и применить миграцию: `docker compose exec backend npx prisma migrate dev --name migration_name`
+3. Проверить статус: `docker compose exec backend npx prisma migrate status`
+
+Подробнее: [`../database/design.md`](../database/design.md#миграции)
 
 **Seed (тестовые данные):**
 - **Dev**: `yarn prisma:seed` (запускает TypeScript файл через ts-node)

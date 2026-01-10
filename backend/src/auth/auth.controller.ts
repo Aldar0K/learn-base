@@ -38,6 +38,7 @@ export class AuthController {
           properties: {
             id: { type: "string" },
             email: { type: "string" },
+            name: { type: "string", nullable: true },
             role: { type: "string", enum: ["student", "author", "admin"] },
           },
         },
@@ -92,6 +93,7 @@ export class AuthController {
           properties: {
             id: { type: "string" },
             email: { type: "string" },
+            name: { type: "string", nullable: true },
             role: { type: "string", enum: ["student", "author", "admin"] },
           },
         },
@@ -180,6 +182,7 @@ export class AuthController {
           properties: {
             id: { type: "string" },
             email: { type: "string" },
+            name: { type: "string", nullable: true },
             role: { type: "string", enum: ["student", "author", "admin"] },
           },
         },
@@ -236,6 +239,7 @@ export class AuthController {
           properties: {
             id: { type: "string" },
             email: { type: "string" },
+            name: { type: "string", nullable: true },
             role: { type: "string", enum: ["student", "author", "admin"] },
           },
         },
@@ -244,7 +248,13 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: "Не авторизован" })
   async getMe(
-    @CurrentUser() user: { id: string; email: string; role: string }
+    @CurrentUser()
+    user: {
+      id: string;
+      email: string;
+      name: string | null;
+      role: string;
+    }
   ) {
     return { user };
   }
@@ -265,6 +275,7 @@ export class AuthController {
           properties: {
             id: { type: "string" },
             email: { type: "string" },
+            name: { type: "string", nullable: true },
             role: { type: "string", enum: ["student", "author", "admin"] },
             createdAt: { type: "string" },
           },
@@ -291,7 +302,13 @@ export class AuthController {
   @ApiResponse({ status: 401, description: "Не авторизован" })
   @ApiResponse({ status: 403, description: "Доступ запрещен" })
   async adminOnly(
-    @CurrentUser() user: { id: string; email: string; role: string }
+    @CurrentUser()
+    user: {
+      id: string;
+      email: string;
+      name: string | null;
+      role: string;
+    }
   ) {
     return { message: "This is admin only endpoint", user };
   }

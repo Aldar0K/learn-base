@@ -9,6 +9,7 @@ export type LoginDto = {
 
 export type CreateUserDto = {
   email: string;
+  name?: string;
   password: string;
   role: UserRole;
 };

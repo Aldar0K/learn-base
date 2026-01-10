@@ -19,6 +19,7 @@ export const CreateUserForm = () => {
   } = useForm<CreateUserDto>({
     defaultValues: {
       email: "",
+      name: "",
       password: "",
       role: "student",
     },
@@ -28,6 +29,7 @@ export const CreateUserForm = () => {
     try {
       await createUser({
         email: data.email.trim(),
+        name: data.name?.trim() || undefined,
         password: data.password,
         role: data.role,
       }).unwrap();
@@ -70,6 +72,17 @@ export const CreateUserForm = () => {
         {errors.email && (
           <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>
         )}
+      </div>
+
+      <div>
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          type="text"
+          {...register("name")}
+          placeholder="John Doe"
+          className="mt-1"
+        />
       </div>
 
       <div>
