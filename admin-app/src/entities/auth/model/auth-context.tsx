@@ -6,7 +6,6 @@ import {
   useGetMeQuery,
   useLoginMutation,
   useLogoutMutation,
-  useRegisterMutation,
 } from "./api";
 import { AuthContext } from "./auth-context.const";
 
@@ -31,11 +30,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isLoading = isGetMeLoading || isLoadingFromSlice;
 
   const [loginMutation] = useLoginMutation();
-  const [registerMutation] = useRegisterMutation();
   const [logoutMutation] = useLogoutMutation();
 
-  const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/register";
+  const isAuthPage = location.pathname === "/login";
 
   // Автоматическая навигация на основе состояния авторизации
   useEffect(() => {
@@ -53,10 +50,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await loginMutation({ email, password }).unwrap();
   };
 
-  const register = async (email: string, password: string) => {
-    await registerMutation({ email, password }).unwrap();
-  };
-
   const logout = async () => {
     try {
       await logoutMutation().unwrap();
@@ -72,7 +65,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isLoading,
         isAuthenticated: !!user,
         login,
-        register,
         logout,
       }}
     >

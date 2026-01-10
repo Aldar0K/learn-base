@@ -1,15 +1,16 @@
 import { baseApi } from "@/app/store";
-import type { User } from "@/entities/user";
+import type { User, UserRole } from "@/entities/user";
 import { authActions } from "./auth.slice";
-
-export type RegisterDto = {
-  email: string;
-  password: string;
-};
 
 export type LoginDto = {
   email: string;
   password: string;
+};
+
+export type CreateUserDto = {
+  email: string;
+  password: string;
+  role: UserRole;
 };
 
 export type AuthResponse = {
@@ -18,28 +19,21 @@ export type AuthResponse = {
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    register: builder.mutation<AuthResponse, RegisterDto>({
-      query: (data) => ({
-        url: "/auth/register",
-        method: "POST",
-        data,
-      }),
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(authActions.setUser(data.user));
-        } catch {
-          // Игнорируем ошибки
-        }
-      },
-    }),
-
     login: builder.mutation<AuthResponse, LoginDto>({
       query: (data) => ({
         url: "/auth/login",
         method: "POST",
         data,
       }),
+      transformResponse: (response: AuthResponse): AuthResponse => {
+        // Admin-app доступен только авторам и админам
+        if (response.user.role === "student") {
+          throw new Error(
+            "Access denied. Admin panel is available only for authors and admins."
+          );
+        }
+        return response;
+      },
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -68,6 +62,15 @@ export const authApi = baseApi.injectEndpoints({
     getMe: builder.query<{ user: User }, void>({
       query: () => "/auth/me",
       providesTags: ["User"],
+      transformResponse: (response: { user: User }): { user: User } => {
+        // Admin-app доступен только авторам и админам
+        if (response.user.role === "student") {
+          throw new Error(
+            "Access denied. Admin panel is available only for authors and admins."
+          );
+        }
+        return response;
+      },
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         dispatch(authActions.setLoading(true));
         try {
@@ -76,8 +79,8 @@ export const authApi = baseApi.injectEndpoints({
         } catch (error) {
           // Если ошибка 401 и refresh не помог - очищаем user
           // Логика refresh обрабатывается в baseQuery
-          const err = error as { status?: number };
-          if (err.status === 401) {
+          const err = error as { status?: number; message?: string };
+          if (err.status === 401 || err.message?.includes("Access denied")) {
             dispatch(authActions.setUser(null));
           }
         } finally {
@@ -91,6 +94,15 @@ export const authApi = baseApi.injectEndpoints({
         url: "/auth/refresh",
         method: "POST",
       }),
+      transformResponse: (response: AuthResponse): AuthResponse => {
+        // Admin-app доступен только авторам и админам
+        if (response.user.role === "student") {
+          throw new Error(
+            "Access denied. Admin panel is available only for authors and admins."
+          );
+        }
+        return response;
+      },
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
@@ -101,14 +113,23 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
+
+    createUser: builder.mutation<{ user: User }, CreateUserDto>({
+      query: (data) => ({
+        url: "/auth/users",
+        method: "POST",
+        data,
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
 export const {
-  useRegisterMutation,
   useLoginMutation,
   useLogoutMutation,
   useGetMeQuery,
   useLazyGetMeQuery,
   useRefreshMutation,
+  useCreateUserMutation,
 } = authApi;

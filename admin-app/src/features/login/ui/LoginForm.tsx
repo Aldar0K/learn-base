@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import { useAuth } from "@/entities/auth";
 import { Button, Input, Label } from "@/shared/ui";
@@ -78,15 +77,6 @@ export const LoginForm = () => {
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>
-
-          <div className="pt-4 text-center text-sm">
-            <span className="text-muted-foreground">
-              Don&apos;t have an account?{" "}
-            </span>
-            <Link to="/register" className="text-primary hover:underline">
-              Sign up
-            </Link>
-          </div>
         </form>
       </div>
     </div>

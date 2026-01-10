@@ -7,7 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../common/prisma";
-import { LoginDto, RegisterDto } from "./dto";
+import { CreateUserDto, LoginDto, RegisterDto } from "./dto";
 import { JwtPayload } from "./strategies/jwt.strategy";
 
 @Injectable()
@@ -106,6 +106,40 @@ export class AuthService {
     };
   }
 
+  async createUser(createUserDto: CreateUserDto) {
+    const { email, password, role } = createUserDto;
+
+    // Проверяем, существует ли пользователь
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException("User with this email already exists");
+    }
+
+    // Хешируем пароль
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Создаем пользователя с указанной ролью
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role,
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return { user };
+  }
+
   async refreshToken(refreshToken: string) {
     try {
       // Валидируем refresh token
@@ -144,7 +178,7 @@ export class AuthService {
         user,
         accessToken,
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException("Invalid refresh token");
     }
   }
