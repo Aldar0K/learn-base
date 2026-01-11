@@ -228,10 +228,18 @@ model User {
 
 #### 2. Создать и применить миграцию
 
-Выполняем в Docker контейнере:
+Выполняем в Docker контейнере. Есть два варианта:
+
+**Вариант A: Если контейнеры уже запущены (рекомендуется)**
 ```bash
 cd learnbase-config-dev
 docker compose exec backend npx prisma migrate dev --name migration_name
+```
+
+**Вариант B: Если контейнеры не запущены**
+```bash
+cd learnbase-config-dev
+docker compose run --rm backend npx prisma migrate dev --name migration_name
 ```
 
 **Что происходит:**
@@ -243,11 +251,16 @@ docker compose exec backend npx prisma migrate dev --name migration_name
 #### 3. Проверить статус миграций
 
 ```bash
+# Если контейнеры запущены
 docker compose exec backend npx prisma migrate status
+
+# Если контейнеры не запущены
+docker compose run --rm backend npx prisma migrate status
 ```
 
 #### Команды для работы с миграциями
 
+**Если контейнеры запущены (используйте `exec`):**
 ```bash
 # Создать и применить миграцию (для разработки)
 docker compose exec backend npx prisma migrate dev --name migration_name
@@ -264,6 +277,22 @@ docker compose exec backend npx prisma generate
 # Откатить последнюю миграцию (только в dev, сбросит БД)
 docker compose exec backend npx prisma migrate reset
 ```
+
+**Если контейнеры не запущены (используйте `run --rm`):**
+```bash
+# Создать и применить миграцию
+docker compose run --rm backend npx prisma migrate dev --name migration_name
+
+# Применить существующие миграции
+docker compose run --rm backend npx prisma migrate deploy
+
+# Проверить статус миграций
+docker compose run --rm backend npx prisma migrate status
+```
+
+**Разница между `exec` и `run`:**
+- `docker compose exec` - выполняет команду в **уже запущенном** контейнере (быстрее, использует существующий контейнер)
+- `docker compose run --rm` - создает **новый** контейнер для выполнения команды (используется когда контейнер не запущен или нужен изолированный запуск)
 
 **Важные моменты:**
 - Миграции выполняются в контейнере, где есть доступ к БД через `DATABASE_URL`

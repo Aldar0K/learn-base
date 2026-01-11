@@ -32,9 +32,9 @@
 3) Примени миграции БД (один раз перед первым запуском):
    ```bash
    cd learnbase-config-dev
-   # Сначала запусти контейнеры
+   # Запусти БД и бэкенд для выполнения миграций
    docker compose up -d db backend
-   # Затем примени миграции
+   # Примени миграции (exec - т.к. контейнер уже запущен)
    docker compose exec backend npx prisma migrate dev
    # Опционально: заполнить тестовыми данными
    docker compose exec backend npm run prisma:seed
@@ -71,9 +71,9 @@
 2) Примени миграции БД (один раз перед первым запуском):
    ```bash
    cd learnbase-config-prod
-   # Сначала запусти контейнеры
+   # Запусти БД и бэкенд для выполнения миграций
    docker compose up -d db backend
-   # Затем примени миграции
+   # Примени миграции (exec - т.к. контейнер уже запущен)
    docker compose exec backend npx prisma migrate deploy
    # Опционально: заполнить тестовыми данными
    docker compose exec backend npm run prisma:seed:prod
@@ -102,17 +102,27 @@
 ### Работа с БД (Prisma)
 
 **Dev окружение:**
-- Миграции: `docker compose exec backend npx prisma migrate dev --name migration_name` (создает и применяет)
-- Seed: `docker compose exec backend npm run prisma:seed` (TypeScript через ts-node)
-- Статус миграций: `docker compose exec backend npx prisma migrate status`
+- Миграции: 
+  - Если контейнеры запущены: `docker compose exec backend npx prisma migrate dev --name migration_name`
+  - Если контейнеры не запущены: `docker compose run --rm backend npx prisma migrate dev --name migration_name`
+- Seed: 
+  - Если контейнеры запущены: `docker compose exec backend npm run prisma:seed`
+  - Если контейнеры не запущены: `docker compose run --rm backend npm run prisma:seed`
+- Статус миграций: `docker compose exec backend npx prisma migrate status` (требует запущенные контейнеры)
 - Prisma Studio: автоматически запускается с `docker compose up`, доступен на http://localhost:5555
 
 **Prod окружение:**
-- Миграции: `docker compose exec backend npx prisma migrate deploy` (только применяет существующие)
-- Seed: `docker compose exec backend npm run prisma:seed:prod` (скомпилированный JavaScript)
+- Миграции: 
+  - Если контейнеры запущены: `docker compose exec backend npx prisma migrate deploy`
+  - Если контейнеры не запущены: `docker compose run --rm backend npx prisma migrate deploy`
+- Seed: 
+  - Если контейнеры запущены: `docker compose exec backend npm run prisma:seed:prod`
+  - Если контейнеры не запущены: `docker compose run --rm backend npm run prisma:seed:prod`
 - Prisma Studio: автоматически запускается с `docker compose up`, доступен на http://localhost:5555
 
-**Важно:** Команды `exec` требуют, чтобы контейнеры были запущены. Если контейнеры не запущены, используйте `docker compose run --rm backend <command>`.
+**Разница между `exec` и `run`:**
+- `docker compose exec` - выполняет команду в **уже запущенном** контейнере (быстрее, использует существующий контейнер)
+- `docker compose run --rm` - создает **новый** контейнер для выполнения команды (используется когда контейнер не запущен или нужен изолированный запуск)
 
 **Примечание:** Prisma Studio использует отдельный `Dockerfile.prisma-studio` для оптимизации сборки.
 
