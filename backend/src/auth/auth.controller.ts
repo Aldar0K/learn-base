@@ -18,7 +18,7 @@ import {
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AdminOnly, Authenticated, CurrentUser } from "./decorators";
-import { CreateUserDto, LoginDto, RegisterDto } from "./dto";
+import { LoginDto, RegisterDto } from "./dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -257,38 +257,6 @@ export class AuthController {
     }
   ) {
     return { user };
-  }
-
-  @Post("users")
-  @AdminOnly()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiCookieAuth("access_token")
-  @ApiOperation({ summary: "Создать нового пользователя (только для админов)" })
-  @ApiResponse({
-    status: 201,
-    description: "Пользователь успешно создан",
-    schema: {
-      type: "object",
-      properties: {
-        user: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            email: { type: "string" },
-            name: { type: "string", nullable: true },
-            role: { type: "string", enum: ["student", "author", "admin"] },
-            createdAt: { type: "string" },
-          },
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 400, description: "Неверные данные" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
-  @ApiResponse({ status: 403, description: "Доступ запрещен" })
-  @ApiResponse({ status: 409, description: "Пользователь уже существует" })
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.authService.createUser(createUserDto);
   }
 
   @Get("admin-only")
