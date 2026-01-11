@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsString, Min } from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 import { UserRole } from "./create-user.dto";
 
 export class GetUsersDto {
@@ -12,6 +12,7 @@ export class GetUsersDto {
     required: false,
   })
   @Type(() => Number)
+  @IsInt()
   @Min(1)
   @IsOptional()
   page?: number = 1;
@@ -25,7 +26,9 @@ export class GetUsersDto {
     required: false,
   })
   @Type(() => Number)
+  @IsInt()
   @Min(1)
+  @Max(100)
   @IsOptional()
   itemsPerPage?: number = 10;
 

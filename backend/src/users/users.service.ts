@@ -100,6 +100,8 @@ export class UsersService {
         itemsPerPage,
         total,
         totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
       },
     };
   }

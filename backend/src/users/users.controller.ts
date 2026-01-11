@@ -87,6 +87,8 @@ export class UsersController {
             itemsPerPage: { type: "number" },
             total: { type: "number" },
             totalPages: { type: "number" },
+            hasNextPage: { type: "boolean" },
+            hasPreviousPage: { type: "boolean" },
           },
         },
       },
