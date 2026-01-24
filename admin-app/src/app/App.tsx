@@ -7,6 +7,7 @@ import { CreateUserPage } from "@/pages/create-user";
 import { EditCoursePage } from "@/pages/edit-course";
 import { HomePage } from "@/pages/home";
 import { LoginPage } from "@/pages/login";
+import { UsersPage } from "@/pages/users-list";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { SuspenseWrapper } from "@/shared/ui";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -73,6 +74,16 @@ const App = () => {
                   <ProtectedRoute>
                     <SuspenseWrapper>
                       <EditCoursePage />
+                    </SuspenseWrapper>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <SuspenseWrapper>
+                      <UsersPage />
                     </SuspenseWrapper>
                   </ProtectedRoute>
                 }

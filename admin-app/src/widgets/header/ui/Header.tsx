@@ -37,6 +37,14 @@ export const Header = ({ className }: HeaderProps) => {
             Courses
           </Link>
         )}
+        {user && user.role === "admin" && (
+          <Link
+            to="/users"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Users
+          </Link>
+        )}
       </div>
 
       <div className="flex items-center gap-4">

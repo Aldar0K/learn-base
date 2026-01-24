@@ -7,13 +7,6 @@ export type LoginDto = {
   password: string;
 };
 
-export type CreateUserDto = {
-  email: string;
-  name?: string;
-  password: string;
-  role: UserRole;
-};
-
 export type AuthResponse = {
   user: User;
 };
@@ -115,14 +108,6 @@ export const authApi = baseApi.injectEndpoints({
       },
     }),
 
-    createUser: builder.mutation<{ user: User }, CreateUserDto>({
-      query: (data) => ({
-        url: "/auth/users",
-        method: "POST",
-        data,
-      }),
-      invalidatesTags: ["User"],
-    }),
   }),
 });
 
@@ -132,5 +117,4 @@ export const {
   useGetMeQuery,
   useLazyGetMeQuery,
   useRefreshMutation,
-  useCreateUserMutation,
 } = authApi;

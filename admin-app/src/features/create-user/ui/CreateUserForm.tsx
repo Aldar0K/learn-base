@@ -1,11 +1,11 @@
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
+import type { UserRole } from "@/entities/user";
 import {
   useCreateUserMutation,
   type CreateUserDto,
-} from "@/entities/auth";
-import type { UserRole } from "@/entities/user";
+} from "@/entities/user";
 import { Button, Input, Label } from "@/shared/ui";
 
 export const CreateUserForm = () => {
@@ -33,7 +33,7 @@ export const CreateUserForm = () => {
         password: data.password,
         role: data.role,
       }).unwrap();
-      navigate("/");
+      navigate("/users");
     } catch (err: unknown) {
       const error = err as { data?: { message?: string }; status?: number };
       setFormError("root", {
