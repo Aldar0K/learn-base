@@ -156,10 +156,8 @@
 
 ## Документация
 
-- [`docs/architecture/backend.md`](./docs/architecture/backend.md) - архитектура бекенда
-- [`docs/architecture/frontend.md`](./docs/architecture/frontend.md) - архитектура фронтенда
-- [`docs/architecture/guards.md`](./docs/architecture/guards.md) - система авторизации
-- [`docs/database/design.md`](./docs/database/design.md) - дизайн базы данных
+- Индекс документации: [`docs/README.md`](./docs/README.md)
+- Правила для ассистента: `.codex/rules/documentation.mdc`
 
 ## Замечания по секретам
 - Не клади секреты в образы и не используйте `NEXT_PUBLIC_*` для чувствительных значений — всё с таким префиксом попадет в бандл.

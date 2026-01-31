@@ -1,0 +1,80 @@
+description: Feature-Sliced Design architectural guidelines
+globs: []
+alwaysApply: true
+---
+## Feature-Sliced Design (FSD)
+Feature-Sliced Design is an architectural methodology for organizing front-end applications. The goal is to keep the project understandable and resilient to changing business requirements through a consistent structure and clear separation of concerns.
+
+## Standard Structure
+```text
+src/
+  app/
+  pages/
+  widgets/
+  features/
+  entities/
+  shared/
+```
+
+These top-level folders are called **layers**. Examples of deeper structure:
+
+```text
+app/
+  App.tsx
+  providers/
+  routes/
+pages/
+  main/
+    model/
+    ui/
+    index.ts    (public API)
+  auth/
+features/
+  login/
+    model/
+    ui/
+    index.ts    (public API)
+entities/
+  user/
+    model/
+    ui/
+    index.ts    (public API)
+shared/
+  ui/
+  api/
+  utils/
+  types/
+  hooks/
+```
+
+Folders inside `pages/` are called **slices** and group code by business domain. Folders inside `app`, `shared`, or a particular slice are **segments** that group code by technical purpose.
+
+## Layers
+- **App** — application shell, routing, entrypoints, global styles, providers.
+- **Processes** (deprecated) — cross-page flows.
+- **Pages** — full pages or key routed sections.
+- **Widgets** — standalone UI or functionality clusters.
+- **Features** — reusable implementations of product features that deliver user value.
+- **Entities** — business entities such as `user` or `product`.
+- **Shared** — reusable, project-agnostic functionality.
+
+## Slices
+- Partition layers by business domain.
+- Choose slice names freely to reflect the product’s vocabulary.
+- Avoid cross-slice dependencies within the same layer to keep cohesion high and coupling low.
+
+## Segments
+- Group code by purpose within a slice or layer.
+- Conventional segment names:
+  - `ui` — presentation components, formatters, styles.
+  - `api` — network requests, mappers, data contracts.
+  - `model` — state, schemas, stores, business logic.
+  - `lib` — shared helpers for the slice.
+  - `config` — configuration, feature flags.
+- Create custom segment names only when necessary, primarily in `shared` or `app`.
+
+## Additional Project Rules
+- Name all folders in lowercase (`app`, `widgets`, `features`, etc.).
+- Name React component files in PascalCase (`App.tsx`, `Header.tsx`, etc.) with a single component per file.
+- Convert large React components to `React.lazy`. The public API should re-export them already wrapped with `Suspense`.
+- For Next.js, prefer the App Router: keep `app` under `src`, ensure page components align with the FSD `pages` layer or import from it, and add `"use client"` to shared client components when required.

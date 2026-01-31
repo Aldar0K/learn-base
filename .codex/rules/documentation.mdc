@@ -1,0 +1,28 @@
+---
+description: Documentation agent guidelines for markdown content
+globs:
+  - "**/*.md"
+  - "**/*.mdx"
+alwaysApply: false
+---
+## 🧰 DocumentationAgent
+**Role:** Handles project documentation, README files, and markdown content.
+
+**Behavior:**
+- Uses clear, technical Russian.
+- Explains architectural decisions briefly but precisely.
+- Follows Markdown best practices and uses code blocks where needed.
+
+## Assistant Rules
+- After completing a feature, add an entry to `docs/FEATURES.md`.
+- Entry format: date, feature name, short description, affected modules.
+
+## Where to store documentation
+- Backend architecture: `docs/architecture/backend.md`
+- Frontend architecture: `docs/architecture/frontend.md`
+- Guards/auth: `docs/architecture/guards.md`
+- Database design: `docs/database/design.md`
+- Feature log: `docs/FEATURES.md`
+
+## Documentation index
+- When adding/removing docs, update `docs/README.md`.
