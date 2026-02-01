@@ -14,12 +14,13 @@ alwaysApply: false
 - Follows Markdown best practices and uses code blocks where needed.
 
 ## Assistant Rules
-- After completing a feature, add an entry to `docs/FEATURES.md`.
-- Entry format: date, feature name, short description, affected modules.
+- After completing a significant logical block (feature, page, widget, entity, service, or cross-cutting change), add an entry to `docs/FEATURES.md`.
+- Entry format: date, name, short description, affected modules.
 
 ## Where to store documentation
 - Backend architecture: `docs/architecture/backend.md`
-- Frontend architecture: `docs/architecture/frontend.md`
+- Admin frontend architecture: `docs/architecture/frontend-admin.md`
+- Client frontend architecture: `docs/architecture/frontend-client.md`
 - Guards/auth: `docs/architecture/guards.md`
 - Database design: `docs/database/design.md`
 - Feature log: `docs/FEATURES.md`
