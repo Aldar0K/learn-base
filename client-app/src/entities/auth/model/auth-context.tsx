@@ -1,12 +1,11 @@
 "use client";
 
 import type { User } from "@/entities/user";
-import { useEffect, type ReactNode } from "react";
-import { useSelector } from "react-redux";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState, type ReactNode } from "react";
 import {
-  useGetMeQuery,
   useLoginMutation,
+  useLazyGetMeQuery,
   useLogoutMutation,
   useRegisterMutation,
 } from "../api/auth.api";
@@ -14,57 +13,68 @@ import { AuthContext } from "./auth-context.const";
 
 type AuthProviderProps = {
   children: ReactNode;
+  initialUser?: User | null;
 };
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children, initialUser = null }: AuthProviderProps) => {
   const router = useRouter();
-  const pathname = usePathname();
-  const { user } = useSelector(
-    (state: { auth: { user: User | null; isLoading: boolean } }) => state.auth
-  );
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [loginMutation] = useLoginMutation();
   const [registerMutation] = useRegisterMutation();
   const [logoutMutation] = useLogoutMutation();
-
-  // Используем isLoading из RTK Query для более точного отслеживания состояния загрузки
-  // getMe всегда вызывается - если access token отсутствует, бекенд вернет 401,
-  // и интерцептор автоматически попытается обновить токен через refresh token
-  const { isLoading: isGetMeLoading } = useGetMeQuery();
-  const { isLoading: isLoadingFromSlice } = useSelector(
-    (state: { auth: { user: User | null; isLoading: boolean } }) => state.auth
-  );
-
-  // isLoading = true если идет запрос getMe ИЛИ если в slice установлен loading
-  const isLoading = isGetMeLoading || isLoadingFromSlice;
-
-  const isAuthPage = pathname === "/login" || pathname === "/register";
-
-  // Автоматическая навигация на основе состояния авторизации
-  useEffect(() => {
-    // Не навигируем пока идет загрузка, чтобы избежать проскакивания login page
-    if (isLoading) return;
-
-    if (!user && !isAuthPage) {
-      router.push("/login");
-    } else if (user && isAuthPage) {
-      router.push("/");
-    }
-  }, [user, isLoading, isAuthPage, router]);
+  const [getMe] = useLazyGetMeQuery();
 
   const login = async (email: string, password: string) => {
-    await loginMutation({ email, password }).unwrap();
+    setIsLoading(true);
+    try {
+      const data = await loginMutation({ email, password }).unwrap();
+      setUser(data.user);
+      router.replace("/");
+      router.refresh();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const register = async (email: string, password: string) => {
-    await registerMutation({ email, password }).unwrap();
+    setIsLoading(true);
+    try {
+      const data = await registerMutation({ email, password }).unwrap();
+      setUser(data.user);
+      router.replace("/");
+      router.refresh();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
       await logoutMutation().unwrap();
     } catch {
       // Игнорируем ошибки при logout
+    } finally {
+      setUser(null);
+      setIsLoading(false);
+      router.replace("/login");
+      router.refresh();
+    }
+  };
+
+  const refetchMe = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getMe().unwrap();
+      setUser(data.user);
+      return data.user;
+    } catch {
+      setUser(null);
+      return null;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -74,6 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         user,
         isLoading,
         isAuthenticated: !!user,
+        refetchMe,
         login,
         register,
         logout,

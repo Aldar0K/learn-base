@@ -79,6 +79,8 @@ services:
     environment:
       NEXT_PUBLIC_IS_DEV: ${NEXT_PUBLIC_IS_DEV}
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      BACKEND_URL: ${BACKEND_URL}
+      APP_URL: ${APP_URL}
     env_file:
       - .env
     networks:

@@ -1,143 +1,99 @@
 # Client Frontend Architecture (client-app)
 
-Описание архитектуры клиентского фронтенда LearnBase (Next.js).
+Описание архитектуры клиентского фронтенда LearnBase (Next.js App Router).
 
 ## Обзор
 
-client-app — клиентская часть. Архитектура построена по FSD и использует RTK/RTK Query, Tailwind CSS, TypeScript.
+`client-app` — клиентское приложение на Next.js с FSD-структурой, RTK Query и серверной проверкой авторизации для protected-разделов.
 
-## Структура
+## Структура (ключевые точки)
 
-```
+```text
 client-app/src/
-  app/              # Next.js App Router
-    layout.tsx      # Корневой layout с провайдерами
-    page.tsx        # Главная страница
-    login/          # Страница логина
-    register/       # Страница регистрации
-    providers.tsx   # Провайдеры (ThemeProvider, StoreProvider)
-    store.ts        # RTK Query baseApi и store конфигурация
-    store-config.ts # makeStore для SSR/ISR поддержки
-  middleware.ts     # Next.js middleware для защиты маршрутов
-  pages/            # FSD Pages layer (если используется)
-  widgets/          # FSD Widgets layer
-  features/         # FSD Features layer
-    login/          # Фича логина
-    register/       # Фича регистрации
-    switch-theme/   # Фича переключения темы
-  entities/         # FSD Entities layer
-    auth/           # Сущность аутентификации (API, slice, context)
-    user/           # Сущность пользователя (типы)
-  shared/           # FSD Shared layer
-    api/            # API клиент (axios instance)
-    utils/          # Утилиты
-    styles/         # Глобальные стили и темы
-    ui/             # UI компоненты
-  providers/        # Провайдеры (StoreProvider, ThemeProvider)
+  app/
+    layout.tsx                 # Корневой layout (общие providers)
+    providers.tsx              # StoreProvider + ThemeProvider
+    (public)/
+      layout.tsx               # AuthProvider(initialUser=null)
+      login/page.tsx
+      register/page.tsx
+    (protected)/
+      layout.tsx               # Server guard через getCurrentUser()
+      page.tsx
+    api/auth/
+      _utils.ts                # Proxy + forward Set-Cookie
+      me/route.ts
+      login/route.ts
+      register/route.ts
+      logout/route.ts
+      refresh/route.ts
+  lib/
+    auth.ts                    # Server helper getCurrentUser()
+  entities/auth/
+    api/auth.api.ts
+    model/auth-context.tsx
+  shared/api/
+    api-client.ts              # baseURL=/api
 ```
 
-## Аутентификация (client-app)
+## Авторизация
 
-**Архитектура:**
-- **RTK Query** (`entities/auth/api/auth.api.ts`) - API endpoints (login, register, logout, getMe, refresh)
-- **Redux Slice** (`entities/auth/model/auth.slice.ts`) - состояние пользователя и loading
-- **React Context** (`entities/auth/model/auth-context.tsx`) - провайдер для удобного доступа к auth
-- **Хук** (`entities/auth/model/use-auth.ts`) - хук для доступа к контексту
-- **Типы** (`entities/user/model/types.ts`) - типы User и UserRole
+### Backend assumptions
 
-**Refresh Token механизм:**
-- Автоматическое обновление access token при получении 401 ошибки
-- Логика реализована в `axiosBaseQuery` (в `app/store.ts`)
-- Предотвращение множественных одновременных refresh запросов
-- Очистка состояния пользователя при невалидном refresh token
+- Backend ставит `HttpOnly` cookies (`access_token`, `refresh_token`).
+- `GET /api/auth/me` при истекшем access может сделать silent refresh по `refresh_token` и вернуть новый `Set-Cookie`.
 
-**Фичи:**
-- `features/login/` - Форма логина
-- `features/register/` - Форма регистрации
+### Client flow
 
-**Использование:**
-```typescript
-import { useAuth, AuthProvider } from "@/entities/auth";
+1. `app/(protected)/layout.tsx` на сервере вызывает `getCurrentUser()`.
+2. `getCurrentUser()` запрашивает только `GET /api/auth/me` (через Next route handler).
+3. Если пользователь не получен, layout делает `redirect("/login")` до рендера страницы.
+4. Если пользователь получен, он передается в `AuthProvider` как `initialUser`.
+5. На protected layout дополнительно выполняется client-side sync вызов `/api/auth/me` для применения `Set-Cookie` в браузере после SSR-проверки.
 
-// В layout.tsx
-<AuthProvider>
-  {/* приложение */}
-</AuthProvider>
+Итог:
+- нет client-side мигания защищенной страницы;
+- корректный SSR-guard;
+- единая точка чтения сессии.
+- silent refresh корректно обновляет browser cookies даже при первом server-side рендере protected страницы.
 
-// В компонентах
-const { user, login, logout, isAuthenticated } = useAuth();
-```
+## Proxy auth handlers (`app/api/auth/*`)
 
-## Роутинг
+Route handlers проксируют запросы в backend и форвардят `Set-Cookie` обратно в ответ Next.
 
-- Next.js App Router
-- `/login`, `/register` — страницы авторизации
-- `/` — главная страница (защищена)
-- `middleware.ts` защищает приватные маршруты
+Это обязательно для сценария silent refresh: backend обновил access cookie на `/me`, браузер получил обновленный cookie от Next response.
 
-## Защищенные маршруты
+Поддерживаются:
+- `GET /api/auth/me`
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `POST /api/auth/logout`
+- `POST /api/auth/refresh`
 
-- Middleware редиректит гостей на `/login`
-- При наличии `access_token` или `refresh_token` доступ на приватные страницы
+## AuthProvider
 
-## Темызация
+`AuthProvider` в `entities/auth/model/auth-context.tsx`:
+- получает `initialUser`;
+- не делает обязательный `/me` на mount;
+- предоставляет `login/register/logout`;
+- после login/register/logout вызывает `router.refresh()` для синхронизации серверного состояния.
 
-- Tailwind CSS переменные (`shared/styles/themes.scss`, `shared/styles/main.scss`)
-- `next-themes` для управления темой (light/dark)
+## API слой
 
-## API клиент и RTK Query
+`shared/api/api-client.ts` использует `baseURL: "/api"` и `withCredentials: true`.
 
-**Axios** (`shared/api/api-client.ts`):
-```typescript
-export const apiClient = axios.create({
-  baseURL: `${API_URL}/api`,
-  withCredentials: true,
-});
-```
+Это исключает прямые browser-запросы в backend и централизует cookie-логику в Next route handlers.
 
-**RTK Query** (`app/store.ts`):
-- `axiosBaseQuery`
-- обработка 401 + refresh
-- кэширование и refetch
+## Environment variables
 
-## Чек-лист авторизации (client-app)
+Минимум для server-side auth в client-app:
 
-**Предусловия:**
-- Backend и БД запущены.
-- В `.env` клиента корректный `NEXT_PUBLIC_BACKEND_URL`.
-- Есть валидный пользователь (например, админ из seed).
+- `BACKEND_URL` — URL backend для Next route handlers (server-only).
+- `APP_URL` — URL текущего Next приложения для server fetch в `getCurrentUser()`.
+- `NEXT_PUBLIC_BACKEND_URL` — опционально; для текущей auth-схемы не обязателен.
 
-**1) Гость**
-- `/` → редирект на `/login`.
-- `/login` доступен.
-- `/register` доступен.
+## Middleware
 
-**2) Login**
-- Валидные креды → редирект на `/`.
-- В cookies есть `access_token` и `refresh_token` (httpOnly).
+`middleware.ts` выполняет только ранний редирект гостей на `/login`, если нет обоих cookies (`access_token` и `refresh_token`).
 
-**3) Защищённые маршруты**
-- После логина `/` доступен.
-- Переход на `/login` → редирект на `/`.
-
-**4) /auth/me**
-- После логина запрос `/auth/me` успешен, user в сторе.
-
-**5) Logout**
-- Logout → редирект на `/login`, cookies удалены.
-- `/` снова редиректит на `/login`.
-
-**6) Refresh‑flow**
-- Удалить `access_token`, оставить `refresh_token` → при заходе на `/` сессия восстанавливается.
-- Удалить оба токена → редирект на `/login`.
-
-**7) Ошибки**
-- Неверные креды → ошибка в форме.
-- Протухший refresh → user сбрасывается, редирект на `/login`.
-
-## State Management (Redux Toolkit)
-
-**Архитектура:**
-- **Redux Toolkit** - глобальное состояние
-- **RTK Query** - API слой
-- **Redux Slice** (`entities/auth/model/auth.slice.ts`) - auth состояние
+Финальная авторизационная проверка остается в `app/(protected)/layout.tsx`.
