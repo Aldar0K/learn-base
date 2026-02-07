@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from "@nestjs/common";
 import {
   ApiCookieAuth,
@@ -19,6 +20,7 @@ import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { AdminOnly, Authenticated, CurrentUser } from "./decorators";
 import { LoginDto, RegisterDto } from "./dto";
+import { MeAuthGuard } from "./guards";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -225,7 +227,7 @@ export class AuthController {
   }
 
   @Get("me")
-  @Authenticated()
+  @UseGuards(MeAuthGuard)
   @ApiCookieAuth("access_token")
   @ApiOperation({ summary: "Получить информацию о текущем пользователе" })
   @ApiResponse({

@@ -24,6 +24,17 @@ admin > author > student
 - SameSite: lax для защиты от CSRF
 - Secure flag в production (только HTTPS)
 
+### 1.1 `MeAuthGuard` (для `GET /api/auth/me`)
+
+`MeAuthGuard` расширяет `JwtAuthGuard` сценарий для endpoint `me`:
+
+- сначала пытается обычную JWT-проверку;
+- если access token невалиден, пробует refresh через `refresh_token` cookie;
+- при успешном refresh выставляет новый `access_token` cookie и подставляет пользователя в `request.user`;
+- если refresh невозможен, возвращает `401 Unauthorized`.
+
+Это позволяет фронтенду использовать `/api/auth/me` как единую точку проверки сессии с silent refresh.
+
 ### 2. `RolesGuard`
 Проверяет роль пользователя с учетом иерархии. Если пользователь имеет роль `admin`, он автоматически имеет доступ ко всем операциям, доступным для `author` и `student`.
 
@@ -153,4 +164,3 @@ async update(id: string, dto: UpdateCourseDto, userId: string, userRole: string)
 - ✅ Удаление любых курсов
 - ✅ Управление пользователями
 - ✅ Просмотр всех курсов (включая неопубликованные)
-

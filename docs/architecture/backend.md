@@ -67,7 +67,7 @@ backend/
 - `POST /api/auth/login` - Вход пользователя (устанавливает http-only cookies для access и refresh токенов)
 - `POST /api/auth/logout` - Выход (очищает cookies, требует аутентификации)
 - `POST /api/auth/refresh` - Обновление access token через refresh token (устанавливает новые cookies)
-- `GET /api/auth/me` - Получение текущего пользователя (требует аутентификации)
+- `GET /api/auth/me` - Получение текущего пользователя; при истекшем access token использует `refresh_token` и возвращает новый `Set-Cookie` для access token
 - `POST /api/auth/users` - Создание нового пользователя с выбором роли (только для админов)
 - `GET /api/auth/admin-only` - Пример endpoint только для админов
 
@@ -234,4 +234,3 @@ backend/
 - `@ApiResponse()` - описание возможных ответов
 - `@ApiProperty()` - описание полей DTO
 - `@ApiCookieAuth()` - указание на использование cookie аутентификации
-
